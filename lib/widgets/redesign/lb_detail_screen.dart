@@ -14,10 +14,12 @@ class LbDetailScreen extends StatefulWidget {
     required this.title,
     required this.children,
     this.trailing,
+    this.avoidKeyboard = false,
     this.floatingBottom,
     this.floatingBottomReservedHeight = 0,
   });
 
+  final bool avoidKeyboard;
   final String title;
   final List<Widget> children;
   final Widget? trailing;
@@ -49,7 +51,7 @@ class _LbDetailScreenState extends State<LbDetailScreen> {
       child: PopScope(
         canPop: true,
         child: Scaffold(
-          resizeToAvoidBottomInset: false,
+          resizeToAvoidBottomInset: widget.avoidKeyboard,
           backgroundColor: Colors.transparent,
           body: LbSwipeDismissDetail(
             child: ColoredBox(

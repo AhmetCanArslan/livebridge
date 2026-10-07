@@ -7,11 +7,13 @@ import 'package:livebridge/widgets/redesign/lb_list_component.dart';
 void main() {
   const channel = MethodChannel('livebridge/platform');
   final binding = TestWidgetsFlutterBinding.ensureInitialized();
+  bool failSave = false;
   bool vibrationEnabled = false;
   bool hideRecents = false;
   final writes = <bool>[];
 
   setUp(() {
+    failSave = false;
     vibrationEnabled = false;
     hideRecents = false;
     writes.clear();
@@ -27,6 +29,7 @@ void main() {
         case 'getConvertedNotificationVibrationEnabled':
           return vibrationEnabled;
         case 'setConvertedNotificationVibrationEnabled':
+          if (failSave) return false;
           vibrationEnabled = (call.arguments as Map)['value'] as bool;
           writes.add(vibrationEnabled);
           return true;
@@ -99,6 +102,27 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(item().toggleValue, isTrue);
+    },
+  );
+  testWidgets(
+    'vibration save failure keeps previous state and shows app toast',
+    (tester) async {
+      failSave = true;
+      await tester.pumpWidget(
+        const MaterialApp(home: SettingsAppConfigScreen()),
+      );
+      await tester.pumpAndSettle();
+      vibrationItem(tester).onToggle!(true);
+      await tester.pumpAndSettle();
+      expect(vibrationItem(tester).toggleValue, isFalse);
+      expect(vibrationItem(tester).enabled, isTrue);
+      expect(vibrationEnabled, isFalse);
+      expect(
+        find.text('Could not save the setting. Please try again.'),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pumpAndSettle();
     },
   );
 }

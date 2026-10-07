@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,12 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_strings.dart';
 import '../../platform/livebridge_platform.dart';
 import 'editor_word_lists.dart';
+import '../../theme/livebridge_tokens.dart';
+import '../../widgets/redesign/lb_apps_loading_state.dart';
+import '../../widgets/redesign/lb_detail_screen.dart';
+import '../../widgets/redesign/lb_editor_field.dart';
+import '../../widgets/redesign/lb_list_component.dart';
+import '../../widgets/redesign/lb_toast.dart';
 
 class DictionaryWordEditorScreen extends StatefulWidget {
   const DictionaryWordEditorScreen({super.key});
@@ -55,14 +62,13 @@ class _DictionaryWordEditorScreenState
   }
 
   Future<void> _save() async {
+    if (_saving || _loading || _failed) return;
     final words = {
       for (final key in fields) key: editorWords(_controllers[key]!.text),
     };
     final s = AppStrings.of(context);
     if (!words.values.every(validEditorWords)) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(s.editorLimit)));
+      showLbToast(context, message: s.editorLimit);
       return;
     }
     setState(() => _saving = true);
@@ -73,15 +79,11 @@ class _DictionaryWordEditorScreenState
         throw StateError('save failed');
       }
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(s.appPresentationSaved)));
+        showLbToast(context, message: s.appPresentationSaved);
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(s.settingsSaveError)));
+        showLbToast(context, message: s.settingsSaveError);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -99,55 +101,54 @@ class _DictionaryWordEditorScreenState
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(s.dictionaryEditorTitle)),
-      bottomNavigationBar: _loading || _failed
+    final palette = LbPalette.of(context);
+    return LbDetailScreen(
+      title: s.dictionaryEditorTitle,
+      avoidKeyboard: true,
+      floatingBottom: _loading || _failed
           ? null
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: FilledButton(
-                  onPressed: _saving ? null : _save,
-                  child: Text(s.save),
-                ),
+          : LbEditorSaveBar(
+              label: s.save,
+              onPressed: _saving ? null : () => unawaited(_save()),
+            ),
+      floatingBottomReservedHeight: 84,
+      children: [
+        if (_loading)
+          const LbAppsLoadingState()
+        else if (_failed)
+          Text(
+            s.dictionaryUpdateFailed,
+            style: LbTextStyles.body.copyWith(color: palette.textSecondary),
+          )
+        else ...[
+          Text(
+            s.wordEditorHelp,
+            style: LbTextStyles.body.copyWith(color: palette.textSecondary),
+          ),
+          const SizedBox(height: LbSpacing.detailSectionGap),
+          for (final key in fields)
+            LbEditorField(
+              fieldKey: ValueKey(key),
+              label: s.dictionaryWordField(key),
+              controller: _controllers[key]!,
+              enabled: !_saving,
+            ),
+          LbListComponent(
+            items: [
+              LbListItemData(
+                title: s.editorClear,
+                showChevron: false,
+                enabled: !_saving,
+                onTap: () {
+                  for (final c in _controllers.values) {
+                    c.clear();
+                  }
+                },
               ),
-            ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _failed
-          ? Center(child: Text(s.dictionaryUpdateFailed))
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text(s.wordEditorHelp),
-                const SizedBox(height: 16),
-                for (final key in fields)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: TextField(
-                      key: ValueKey(key),
-                      controller: _controllers[key],
-                      enabled: !_saving,
-                      minLines: 2,
-                      maxLines: 5,
-                      decoration: InputDecoration(
-                        labelText: s.dictionaryWordField(key),
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
-                TextButton(
-                  onPressed: _saving
-                      ? null
-                      : () {
-                          for (final c in _controllers.values) {
-                            c.clear();
-                          }
-                        },
-                  child: Text(s.editorClear),
-                ),
-              ],
-            ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 }

@@ -97,5 +97,7 @@ void main() {
       find.text('Could not save the setting. Please try again.'),
       findsOneWidget,
     );
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
   });
 }

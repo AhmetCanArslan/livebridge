@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,14 @@ import '../../l10n/app_strings.dart';
 import '../../models/app_models.dart';
 import '../../platform/livebridge_platform.dart';
 import 'editor_word_lists.dart';
+import 'editor_app_scope_screen.dart';
+import 'rules_runtime.dart';
+import '../../theme/livebridge_tokens.dart';
+import '../../widgets/redesign/lb_apps_loading_state.dart';
+import '../../widgets/redesign/lb_detail_screen.dart';
+import '../../widgets/redesign/lb_editor_field.dart';
+import '../../widgets/redesign/lb_list_component.dart';
+import '../../widgets/redesign/lb_toast.dart';
 
 class SettingsTextFiltersScreen extends StatefulWidget {
   const SettingsTextFiltersScreen({super.key});
@@ -25,6 +34,7 @@ class _SettingsTextFiltersScreenState extends State<SettingsTextFiltersScreen> {
   bool _loading = true;
   bool _failed = false;
   bool _saving = false;
+  bool _choosingScope = false;
 
   @override
   void initState() {
@@ -35,9 +45,13 @@ class _SettingsTextFiltersScreenState extends State<SettingsTextFiltersScreen> {
   Future<void> _load() async {
     try {
       final filters = LiveBridgePlatform.getNotificationTextFilters();
-      final apps = LiveBridgePlatform.getInstalledApps().catchError(
-        (_) => <InstalledApp>[],
-      );
+      final apps = LiveBridgePlatform.getAppListAccessGranted()
+          .then<List<InstalledApp>>(
+            (granted) => granted
+                ? LiveBridgePlatform.getInstalledApps()
+                : <InstalledApp>[],
+          )
+          .catchError((_) => <InstalledApp>[]);
       final observedFuture = LiveBridgePlatform.getSourceChannels().catchError(
         (_) => "[]",
       );
@@ -87,6 +101,7 @@ class _SettingsTextFiltersScreenState extends State<SettingsTextFiltersScreen> {
   }
 
   Future<void> _save() async {
+    if (_saving || _loading || _failed) return;
     _stash();
     final s = AppStrings.of(context);
     if (_rules.values.any(
@@ -95,9 +110,7 @@ class _SettingsTextFiltersScreenState extends State<SettingsTextFiltersScreen> {
           !validEditorWords(((v['deny'] as List?) ?? []).cast<String>()) ||
           ((v['template'] as String?)?.length ?? 0) > 200,
     )) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(s.editorLimit)));
+      showLbToast(context, message: s.editorLimit);
       return;
     }
     setState(() => _saving = true);
@@ -108,15 +121,11 @@ class _SettingsTextFiltersScreenState extends State<SettingsTextFiltersScreen> {
         throw StateError('save failed');
       }
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(s.appPresentationSaved)));
+        showLbToast(context, message: s.appPresentationSaved);
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(s.settingsSaveError)));
+        showLbToast(context, message: s.settingsSaveError);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -131,102 +140,121 @@ class _SettingsTextFiltersScreenState extends State<SettingsTextFiltersScreen> {
     super.dispose();
   }
 
+  Future<void> _chooseScope() async {
+    if (_saving || _choosingScope) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _choosingScope = true);
+    try {
+      // Enumerate installed apps only after the same consent used elsewhere in the app.
+      if (await lbEnsureAppListAccess(context)) {
+        final apps = await LiveBridgePlatform.getInstalledApps();
+        if (!mounted) return;
+        for (final app in apps) {
+          _apps[app.packageName] = app.label;
+        }
+      }
+      if (!mounted) return;
+      final selected = await Navigator.of(context).push<String>(
+        MaterialPageRoute(
+          builder: (_) =>
+              EditorAppScopeScreen(options: _apps, selected: _scope),
+        ),
+      );
+      if (!mounted || selected == null || selected == _scope) return;
+      _stash();
+      setState(() {
+        _scope = selected;
+        _readScope();
+      });
+    } catch (_) {
+      if (mounted) {
+        showLbToast(context, message: AppStrings.of(context).settingsSaveError);
+      }
+    } finally {
+      if (mounted) setState(() => _choosingScope = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppStrings.of(context);
-    final apps = _apps.entries.toList()
-      ..sort((a, b) => a.value.compareTo(b.value));
-    return Scaffold(
-      appBar: AppBar(title: Text(s.textFiltersTitle)),
-      bottomNavigationBar: _loading || _failed
+    final palette = LbPalette.of(context);
+    return LbDetailScreen(
+      title: s.textFiltersTitle,
+      avoidKeyboard: true,
+      floatingBottom: _loading || _failed
           ? null
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: FilledButton(
-                  onPressed: _saving ? null : _save,
-                  child: Text(s.save),
-                ),
+          : LbEditorSaveBar(
+              label: s.save,
+              onPressed: _saving ? null : () => unawaited(_save()),
+            ),
+      floatingBottomReservedHeight: 84,
+      children: [
+        if (_loading)
+          const LbAppsLoadingState()
+        else if (_failed)
+          Text(
+            s.settingsSaveError,
+            style: LbTextStyles.body.copyWith(color: palette.textSecondary),
+          )
+        else ...[
+          LbListComponent(
+            items: [
+              LbListItemData(
+                title: _scope == '*'
+                    ? s.filterAllApps
+                    : (_apps[_scope] ?? _scope),
+                description: s.filterHelp,
+                enabled: !_saving,
+                onTap: () => unawaited(_chooseScope()),
               ),
-            ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _failed
-          ? Center(child: Text(s.settingsSaveError))
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text(s.filterHelp),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  initialValue: _scope,
-                  isExpanded: true,
-                  items: [
-                    DropdownMenuItem(value: '*', child: Text(s.filterAllApps)),
-                    for (final app in apps)
-                      DropdownMenuItem(
-                        value: app.key,
-                        child: Text(app.value, overflow: TextOverflow.ellipsis),
-                      ),
-                  ],
-                  onChanged: _saving
-                      ? null
-                      : (value) {
-                          if (value == null) return;
-                          _stash();
-                          setState(() {
-                            _scope = value;
-                            _readScope();
-                          });
-                        },
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  key: const ValueKey('allowWords'),
-                  controller: _allow,
-                  enabled: !_saving,
-                  minLines: 3,
-                  maxLines: 8,
-                  decoration: InputDecoration(
-                    labelText: s.filterAllowWords,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-                SwitchListTile(
-                  title: Text(s.filterMatchAll),
-                  value: _all,
-                  onChanged: _saving
-                      ? null
-                      : (value) => setState(() => _all = value),
-                ),
-                TextField(
-                  key: const ValueKey('denyWords'),
-                  controller: _deny,
-                  enabled: !_saving,
-                  minLines: 3,
-                  maxLines: 8,
-                  decoration: InputDecoration(
-                    labelText: s.filterDenyWords,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  key: const ValueKey('textTemplate'),
-                  controller: _template,
-                  enabled: !_saving,
-                  maxLength: 200,
-                  minLines: 2,
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    labelText: s.filterTemplateTitle,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-                Text(s.filterTemplateHelp),
-                const SizedBox(height: 16),
-              ],
-            ),
+            ],
+          ),
+          const SizedBox(height: LbSpacing.detailSectionGap),
+          LbEditorField(
+            fieldKey: const ValueKey('allowWords'),
+            label: s.filterAllowWords,
+            controller: _allow,
+            enabled: !_saving,
+            minLines: 3,
+            maxLines: 8,
+          ),
+          LbListComponent(
+            items: [
+              LbListItemData(
+                title: s.filterMatchAll,
+                showChevron: false,
+                enabled: !_saving,
+                toggleValue: _all,
+                onToggle: (value) => setState(() => _all = value),
+                onTap: () => setState(() => _all = !_all),
+              ),
+            ],
+          ),
+          const SizedBox(height: LbSpacing.md),
+          LbEditorField(
+            fieldKey: const ValueKey('denyWords'),
+            label: s.filterDenyWords,
+            controller: _deny,
+            enabled: !_saving,
+            minLines: 3,
+            maxLines: 8,
+          ),
+          LbEditorField(
+            fieldKey: const ValueKey('textTemplate'),
+            label: s.filterTemplateTitle,
+            controller: _template,
+            enabled: !_saving,
+            maxLength: 200,
+            minLines: 2,
+            maxLines: 4,
+          ),
+          Text(
+            s.filterTemplateHelp,
+            style: LbTextStyles.caption.copyWith(color: palette.textSecondary),
+          ),
+        ],
+      ],
     );
   }
 }

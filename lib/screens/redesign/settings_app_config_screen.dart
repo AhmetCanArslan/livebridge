@@ -18,6 +18,7 @@ import '../../widgets/redesign/lb_list_component.dart';
 import '../../widgets/redesign/lb_modal_bottom_sheet.dart';
 import '../../widgets/redesign/lb_slider.dart';
 import '../../widgets/redesign/lb_toggle.dart';
+import '../../widgets/redesign/lb_toast.dart';
 
 class SettingsAppConfigScreen extends StatefulWidget {
   const SettingsAppConfigScreen({super.key});
@@ -32,6 +33,7 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
   static const int _logLengthMaxMb = 25;
   static const int _bytesPerMb = 1024 * 1024;
 
+  final Set<String> _savingPreferences = {};
   bool _wearOsAvailable = false;
   bool _wearOsEnabled = false;
   bool _wearOsSaving = false;
@@ -139,27 +141,41 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
       if (mounted) setState(() => _wearOsEnabled = value);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppStrings.of(context).settingsSaveError)),
-        );
+        showLbToast(context, message: AppStrings.of(context).settingsSaveError);
       }
     } finally {
       if (mounted) setState(() => _wearOsSaving = false);
     }
   }
 
-  Future<void> _setHideFromRecents(bool value) async {
+  Future<void> _savePreference({
+    required String key,
+    required bool value,
+    required bool current,
+    required Future<bool> Function(bool) save,
+    required void Function(bool) apply,
+  }) async {
+    if (value == current || _savingPreferences.contains(key)) return;
+    setState(() => _savingPreferences.add(key));
     try {
-      final saved = await LiveBridgePlatform.setHideFromRecentsEnabled(value);
-      if (saved && mounted) setState(() => _hideFromRecents = value);
+      if (!await save(value)) throw StateError('Setting not saved');
+      if (mounted) setState(() => apply(value));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppStrings.of(context).settingsSaveError)),
-        );
+        showLbToast(context, message: AppStrings.of(context).settingsSaveError);
       }
+    } finally {
+      if (mounted) setState(() => _savingPreferences.remove(key));
     }
   }
+
+  Future<void> _setHideFromRecents(bool value) => _savePreference(
+    key: 'recents',
+    value: value,
+    current: _hideFromRecents,
+    save: LiveBridgePlatform.setHideFromRecentsEnabled,
+    apply: (saved) => _hideFromRecents = saved,
+  );
 
   Future<void> _setAltBackgroundMode(bool value) async {
     if (value == _altBackgroundMode) {
@@ -201,11 +217,14 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
     await LiveBridgePlatform.setConvertedNotificationSoundEnabled(value);
   }
 
-  Future<void> _setConvertedNotificationVibration(bool value) async {
-    if (value == _convertedNotificationVibration) return;
-    setState(() => _convertedNotificationVibration = value);
-    await LiveBridgePlatform.setConvertedNotificationVibrationEnabled(value);
-  }
+  Future<void> _setConvertedNotificationVibration(bool value) =>
+      _savePreference(
+        key: 'vibration',
+        value: value,
+        current: _convertedNotificationVibration,
+        save: LiveBridgePlatform.setConvertedNotificationVibrationEnabled,
+        apply: (saved) => _convertedNotificationVibration = saved,
+      );
 
   Future<void> _setHintsDisabled(bool value) async {
     if (value == _hintsDisabled) {
@@ -286,6 +305,7 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
         title: strings.hideFromRecentsTitle,
         description: strings.hideFromRecentsDescription,
         showChevron: false,
+        enabled: !_savingPreferences.contains('recents'),
         toggleValue: _hideFromRecents,
         onToggle: (value) => unawaited(_setHideFromRecents(value)),
         onTap: () => unawaited(_setHideFromRecents(!_hideFromRecents)),
@@ -407,6 +427,7 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
         title: strings.convertedNotificationVibrationTitle,
         description: strings.convertedNotificationVibrationDescription,
         showChevron: false,
+        enabled: !_savingPreferences.contains('vibration'),
         toggleValue: _convertedNotificationVibration,
         onToggle: (bool value) {
           unawaited(_setConvertedNotificationVibration(value));

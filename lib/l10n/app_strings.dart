@@ -3106,4 +3106,15 @@ class AppStrings {
         "允許 Android 將轉換後的即時更新轉送至手錶。需要 Android 17、Wear OS 7 及手錶廠商支援。原應用程式通知也可能顯示在手錶上。",
     ko: "Android가 변환된 실시간 업데이트를 시계로 전달하도록 허용합니다. Android 17, Wear OS 7 및 시계 제조사의 지원이 필요합니다. 원래 앱 알림도 시계에 표시될 수 있습니다.",
   );
+  String get searchNoResults => tr(
+    en: 'No results',
+    ru: 'Ничего не найдено',
+    es: 'Sin resultados',
+    de: 'Keine Ergebnisse',
+    tr: 'Sonuç bulunamadı',
+    ptBr: 'Nenhum resultado',
+    zhHans: '没有结果',
+    zhHant: '沒有結果',
+    ko: '검색 결과 없음',
+  );
 }
