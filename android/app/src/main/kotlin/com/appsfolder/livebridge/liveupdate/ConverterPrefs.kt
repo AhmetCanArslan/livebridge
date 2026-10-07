@@ -249,6 +249,13 @@ class ConverterPrefs(context: Context) {
         prefs.edit().putBoolean(KEY_NETWORK_SPEED_ENABLED, value).apply()
     }
 
+    fun getNetworkSpeedHideWhenLocked(): Boolean =
+        prefs.getBoolean(KEY_NETWORK_SPEED_HIDE_WHEN_LOCKED, false)
+
+    fun setNetworkSpeedHideWhenLocked(value: Boolean) {
+        prefs.edit().putBoolean(KEY_NETWORK_SPEED_HIDE_WHEN_LOCKED, value).apply()
+    }
+
     fun getNetworkSpeedMinThresholdBytesPerSecond(): Long {
         return prefs.getLong(KEY_NETWORK_SPEED_MIN_THRESHOLD_BYTES_PER_SECOND, 0L)
             .coerceAtLeast(0L)
@@ -873,6 +880,7 @@ class ConverterPrefs(context: Context) {
             .put("bug_report_auto_copy_enabled", getBugReportAutoCopyEnabled())
             .put("app_language", getAppLanguageTag())
             .put("network_speed_enabled", getNetworkSpeedEnabled())
+            .put("network_speed_hide_when_locked", getNetworkSpeedHideWhenLocked())
             .put(
                 "network_speed_min_threshold_bytes_per_second",
                 getNetworkSpeedMinThresholdBytesPerSecond()
@@ -984,6 +992,7 @@ class ConverterPrefs(context: Context) {
         string(settings, "app_language")?.let(::setAppLanguageTag)
         string(settings, "app_language_tag")?.let(::setAppLanguageTag)
         bool(settings, "network_speed_enabled")?.let(::setNetworkSpeedEnabled)
+        bool(settings, "network_speed_hide_when_locked")?.let(::setNetworkSpeedHideWhenLocked)
         long(settings, "network_speed_min_threshold_bytes_per_second")
             ?.let(::setNetworkSpeedMinThresholdBytesPerSecond)
         bool(settings, "sync_dnd_enabled")?.let(::setSyncDndEnabled)
@@ -1208,6 +1217,7 @@ class ConverterPrefs(context: Context) {
         private const val KEY_CONVERTER_ENABLED = "converter_enabled"
         private const val KEY_KEEP_ALIVE_FOREGROUND_ENABLED = "keep_alive_foreground_enabled"
         private const val KEY_NETWORK_SPEED_ENABLED = "network_speed_enabled"
+        private const val KEY_NETWORK_SPEED_HIDE_WHEN_LOCKED = "network_speed_hide_when_locked"
         private const val KEY_NETWORK_SPEED_MIN_THRESHOLD_BYTES_PER_SECOND =
             "network_speed_min_threshold_bytes_per_second"
         private const val KEY_SPRING_TRANSITIONS_ENABLED = "spring_transitions_enabled"

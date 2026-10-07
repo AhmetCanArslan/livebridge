@@ -12,6 +12,7 @@ import '../../widgets/redesign/lb_info_title.dart';
 import '../../widgets/redesign/lb_list_component.dart';
 import '../../widgets/redesign/lb_slider.dart';
 import '../../widgets/redesign/lb_toggle.dart';
+import '../../widgets/redesign/lb_toast.dart';
 
 class RulesNetworkConnectionsScreen extends StatefulWidget {
   const RulesNetworkConnectionsScreen({super.key});
@@ -30,6 +31,8 @@ class _RulesNetworkConnectionsScreenState
   bool _externalDevicesEnabled = true;
   bool _ignoreDebuggingDevices = false;
   bool _networkSpeedEnabled = false;
+  bool _networkSpeedHideWhenLocked = false;
+  bool _savingHideWhenLocked = false;
   int _networkSpeedThresholdBytesPerSecond = 0;
   double _networkSpeedSliderValue = 0;
 
@@ -51,6 +54,8 @@ class _RulesNetworkConnectionsScreenState
           LiveBridgePlatform.getSmartExternalDevicesIgnoreDebugging();
       final Future<bool> networkSpeedEnabledFuture =
           LiveBridgePlatform.getNetworkSpeedEnabled();
+      final hideWhenLockedFuture =
+          LiveBridgePlatform.getNetworkSpeedHideWhenLocked();
       final Future<int> networkSpeedThresholdFuture =
           LiveBridgePlatform.getNetworkSpeedMinThresholdBytesPerSecond();
 
@@ -58,6 +63,7 @@ class _RulesNetworkConnectionsScreenState
       final bool externalDevicesEnabled = await externalDevicesEnabledFuture;
       final bool ignoreDebuggingDevices = await ignoreDebuggingFuture;
       final bool networkSpeedEnabled = await networkSpeedEnabledFuture;
+      final hideWhenLocked = await hideWhenLockedFuture;
       final int networkSpeedThresholdBytesPerSecond =
           await networkSpeedThresholdFuture;
 
@@ -70,6 +76,7 @@ class _RulesNetworkConnectionsScreenState
         _externalDevicesEnabled = externalDevicesEnabled;
         _ignoreDebuggingDevices = ignoreDebuggingDevices;
         _networkSpeedEnabled = networkSpeedEnabled;
+        _networkSpeedHideWhenLocked = hideWhenLocked;
         _networkSpeedThresholdBytesPerSecond =
             networkSpeedThresholdBytesPerSecond.clamp(
               0,
@@ -112,6 +119,26 @@ class _RulesNetworkConnectionsScreenState
     }
     setState(() => _networkSpeedEnabled = value);
     await LiveBridgePlatform.setNetworkSpeedEnabled(value);
+  }
+
+  Future<void> _setHideWhenLocked(bool value) async {
+    if (_savingHideWhenLocked || value == _networkSpeedHideWhenLocked) return;
+    setState(() => _savingHideWhenLocked = true);
+    try {
+      final saved = await LiveBridgePlatform.setNetworkSpeedHideWhenLocked(
+        value,
+      );
+      if (!saved) {
+        throw StateError("Setting was not saved");
+      }
+      if (mounted) setState(() => _networkSpeedHideWhenLocked = value);
+    } catch (_) {
+      if (mounted) {
+        showLbToast(context, message: AppStrings.of(context).settingsSaveError);
+      }
+    } finally {
+      if (mounted) setState(() => _savingHideWhenLocked = false);
+    }
   }
 
   Future<void> _setNetworkSpeedThresholdBytesPerSecond(int value) async {
@@ -269,6 +296,20 @@ class _RulesNetworkConnectionsScreenState
                   thickness: LbSpacing.recentSeparatorThickness,
                   color: palette.recentSeparator,
                 ),
+              ),
+              LbListComponent(
+                items: [
+                  LbListItemData(
+                    title: strings.networkSpeedHideWhenLocked,
+                    description: strings.networkSpeedHideWhenLockedHelp,
+                    toggleValue: _networkSpeedHideWhenLocked,
+                    enabled: !_savingHideWhenLocked,
+                    onToggle: (value) {
+                      unawaited(_setHideWhenLocked(value));
+                    },
+                    showChevron: false,
+                  ),
+                ],
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(

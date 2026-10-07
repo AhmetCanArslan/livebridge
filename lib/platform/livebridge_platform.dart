@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import '../models/app_models.dart';
+import '../models/promoted_notification_access.dart';
 
 class LiveBridgePlatform {
   static const MethodChannel _channel = MethodChannel('livebridge/platform');
@@ -39,6 +40,19 @@ class LiveBridgePlatform {
       _askBool('isNotificationPermissionGranted');
   static Future<bool> requestNotificationPermission() =>
       _askBool('requestNotificationPermission');
+  static Future<PromotedNotificationAccess>
+  getPromotedNotificationAccess() async {
+    final value = await _channel.invokeMapMethod<Object?, Object?>(
+      'getPromotedNotificationAccess',
+    );
+    return PromotedNotificationAccess.fromMap(value);
+  }
+
+  static Future<bool> getNetworkSpeedHideWhenLocked() =>
+      _askBool('getNetworkSpeedHideWhenLocked');
+  static Future<bool> setNetworkSpeedHideWhenLocked(bool value) =>
+      _askBool('setNetworkSpeedHideWhenLocked', {'value': value});
+
   static Future<bool> canPostPromotedNotifications() =>
       _askBool('canPostPromotedNotifications');
   static Future<bool> openPromotedNotificationSettings() =>

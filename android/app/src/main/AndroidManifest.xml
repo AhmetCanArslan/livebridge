@@ -102,6 +102,9 @@
 
     <queries>
         <intent>
+            <action android:name="android.settings.APP_NOTIFICATION_PROMOTION_SETTINGS" />
+        </intent>
+        <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>

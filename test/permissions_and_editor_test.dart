@@ -13,10 +13,14 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
   String manufacturer = 'vivo';
   String brand = 'vivo';
+  String promotedStatus = 'denied';
+  bool promotionSettingsAvailable = true;
 
   setUp(() {
     manufacturer = 'vivo';
     brand = 'vivo';
+    promotedStatus = 'denied';
+    promotionSettingsAvailable = true;
     binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
       MethodCall call,
     ) async {
@@ -33,6 +37,12 @@ void main() {
           ];
         case 'getDeviceInfo':
           return <String, String>{'manufacturer': manufacturer, 'brand': brand};
+        case 'getPromotedNotificationAccess':
+          return {
+            'status': promotedStatus,
+            'apiAvailable': true,
+            'settingsAvailable': promotionSettingsAvailable,
+          };
         case 'canPostPromotedNotifications':
           return false;
         default:
@@ -77,6 +87,51 @@ void main() {
     expect(list.items, hasLength(3));
     expect(list.items.last.trailingIcon, isNotNull);
   });
+
+  for (final status in ['unavailable', 'unknown']) {
+    testWidgets(
+      'ASUS $status shows information without a false permission warning',
+      (tester) async {
+        manufacturer = 'asus';
+        brand = 'asus';
+        promotedStatus = status;
+        promotionSettingsAvailable = false;
+        await tester.pumpWidget(
+          const MaterialApp(home: SettingsPermissionsScreen()),
+        );
+        await tester.pumpAndSettle();
+        final list = tester.widget<LbListComponent>(
+          find.byType(LbListComponent),
+        );
+        expect(list.items, hasLength(3));
+        final promotion = list.items.last;
+        expect(promotion.trailingIcon, isNull);
+        expect(promotion.onTap, isNull);
+        expect(promotion.showChevron, isFalse);
+        expect(promotion.subtitle, isNotNull);
+        expect(promotion.description, contains('not an overlay permission'));
+      },
+    );
+  }
+  testWidgets(
+    'granted promotion access remains granted without a settings page',
+    (tester) async {
+      manufacturer = 'asus';
+      brand = 'asus';
+      promotedStatus = 'granted';
+      promotionSettingsAvailable = false;
+      await tester.pumpWidget(
+        const MaterialApp(home: SettingsPermissionsScreen()),
+      );
+      await tester.pumpAndSettle();
+      final item = tester
+          .widget<LbListComponent>(find.byType(LbListComponent))
+          .items
+          .last;
+      expect(item.trailingIcon, isNull);
+      expect(item.subtitle, isNull);
+    },
+  );
 
   test('vivo detection uses vendor identity rather than a model substring', () {
     const DeviceInfo device = DeviceInfo(

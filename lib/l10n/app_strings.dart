@@ -51,6 +51,21 @@ class AppStrings {
     return en;
   }
 
+  String get promotionUnavailableStatus =>
+      tr(en: 'Unavailable on this firmware', ru: 'Недоступно в этой прошивке');
+  String get promotionUnknownStatus =>
+      tr(en: 'Could not check access', ru: 'Не удалось проверить доступ');
+  String get promotionUnavailableHelp => tr(
+    en: 'The system does not expose a working Live Updates permission check or settings page. This is not an overlay permission. Notification conversion can stay enabled, but the firmware decides whether to show a live capsule.',
+    ru: 'Система не предоставляет рабочую проверку или настройку доступа к Live Updates. Это не разрешение на показ поверх других приложений. Конвертация уведомлений может оставаться включённой, но показ капсулы зависит от прошивки.',
+  );
+  String get networkSpeedHideWhenLocked =>
+      tr(en: 'Hide speed when locked', ru: 'Скрывать скорость при блокировке');
+  String get networkSpeedHideWhenLockedHelp => tr(
+    en: 'Hide the speed capsule while the screen is off or locked. It returns after unlocking. The background service notification stays in the notification panel.',
+    ru: 'Скрывать капсулу скорости при выключенном или заблокированном экране. После разблокировки она возвращается. Уведомление фоновой службы остаётся в шторке.',
+  );
+
   String get textFiltersTitle =>
       tr(en: 'Notification text filters', ru: 'Фильтры по тексту уведомлений');
   String get textFiltersDescription => tr(

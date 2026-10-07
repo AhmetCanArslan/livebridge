@@ -52,7 +52,8 @@ class NetworkSpeedNotificationBuilder(
 
     fun build(
         sample: NetworkSpeedSample,
-        minPromotedBytesPerSecond: Long = 0L
+        minPromotedBytesPerSecond: Long = 0L,
+        allowPromotion: Boolean = true
     ): Notification {
         ensureChannel()
         val text = localizedText()
@@ -73,7 +74,7 @@ class NetworkSpeedNotificationBuilder(
             append(NetworkSpeedFormatter.formatCompact(sample.uploadBytesPerSecond))
         }
         val shouldPromote =
-            sample.totalBytesPerSecond >= minPromotedBytesPerSecond.coerceAtLeast(0L)
+            allowPromotion && sample.totalBytesPerSecond >= minPromotedBytesPerSecond.coerceAtLeast(0L)
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_speed)

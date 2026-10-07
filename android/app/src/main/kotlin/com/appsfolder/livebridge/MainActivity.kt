@@ -33,6 +33,7 @@ import com.appsfolder.livebridge.liveupdate.AppPresentationOverridesCodec
 import com.appsfolder.livebridge.liveupdate.AppPresentationOverridesLoader
 import com.appsfolder.livebridge.liveupdate.ConverterPrefs
 import com.appsfolder.livebridge.liveupdate.ConversionLogStore
+import com.appsfolder.livebridge.liveupdate.PromotedAccessPolicy
 import com.appsfolder.livebridge.liveupdate.DeviceProps
 import com.appsfolder.livebridge.liveupdate.KeepAliveForegroundService
 import com.appsfolder.livebridge.liveupdate.LiveBridgeTileService
@@ -115,6 +116,7 @@ class MainActivity : FlutterActivity() {
             "isNotificationPermissionGranted" -> res.success(isNotificationPermissionGranted())
             "requestNotificationPermission" -> requestNotificationPermission(res)
             "canPostPromotedNotifications" -> res.success(canPostPromotedNotifications())
+            "getPromotedNotificationAccess" -> res.success(getPromotedNotificationAccess())
             "openPromotedNotificationSettings" -> res.success(openPromotedNotificationSettings())
             "openAppNotificationSettings" -> res.success(openAppNotificationSettings())
             "getInstalledApps" -> loadInstalledAppsAsync(res)
@@ -478,6 +480,13 @@ class MainActivity : FlutterActivity() {
             "setNetworkSpeedEnabled" -> {
                 val value = call.argument<Boolean>("value") ?: false
                 prefs.setNetworkSpeedEnabled(value)
+                syncNetworkSpeedForegroundService(prefs)
+                res.success(true)
+            }
+
+            "getNetworkSpeedHideWhenLocked" -> res.success(prefs.getNetworkSpeedHideWhenLocked())
+            "setNetworkSpeedHideWhenLocked" -> {
+                prefs.setNetworkSpeedHideWhenLocked(call.argument<Boolean>("value") ?: false)
                 syncNetworkSpeedForegroundService(prefs)
                 res.success(true)
             }
@@ -1031,20 +1040,35 @@ class MainActivity : FlutterActivity() {
         )
     }
 
-    private fun canPostPromotedNotifications(): Boolean {
-        if (Build.VERSION.SDK_INT < 36) {
-            return false
+    private fun promotionSettingsIntent() =
+        Intent("android.settings.APP_NOTIFICATION_PROMOTION_SETTINGS").apply {
+            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
         }
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        return try {
-            val method = notificationManager.javaClass.getMethod("canPostPromotedNotifications")
-            method.invoke(notificationManager) as? Boolean ?: false
-        } catch (_: Exception) {
-            false
+    private fun getPromotedNotificationAccess(): Map<String, Any> {
+        val settingsAvailable = runCatching {
+            promotionSettingsIntent().resolveActivity(packageManager) != null
+        }.getOrDefault(false)
+        var apiAvailable = false
+        val status = if (Build.VERSION.SDK_INT < 36) "unavailable" else {
+            try {
+                val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                val method = manager.javaClass.getMethod("canPostPromotedNotifications")
+                apiAvailable = true
+                PromotedAccessPolicy.status(apiAvailable,
+                    method.invoke(manager) as? Boolean, settingsAvailable)
+            } catch (_: NoSuchMethodException) {
+                "unavailable"
+            } catch (_: Exception) {
+                "unknown"
+            }
         }
+        return mapOf("status" to status, "apiAvailable" to apiAvailable,
+            "settingsAvailable" to settingsAvailable)
     }
+
+    private fun canPostPromotedNotifications(): Boolean =
+        getPromotedNotificationAccess()["status"] == "granted"
 
     private fun openNotificationListenerSettings(): Boolean {
         if (launchSettingsIntent(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))) {
@@ -1067,9 +1091,7 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun openPromotedNotificationSettings(): Boolean {
-        val intent = Intent("android.settings.APP_NOTIFICATION_PROMOTION_SETTINGS").apply {
-            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-        }
+        val intent = promotionSettingsIntent()
 
         if (launchSettingsIntent(intent)) {
             return true

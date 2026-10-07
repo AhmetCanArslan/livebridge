@@ -85,8 +85,7 @@ class _SettingsReportBugScreenState extends State<SettingsReportBugScreen> {
         LiveBridgePlatform.isNotificationListenerEnabled();
     final Future<bool> notificationsGrantedFuture =
         LiveBridgePlatform.isNotificationPermissionGranted();
-    final Future<bool> canPostPromotedFuture =
-        LiveBridgePlatform.canPostPromotedNotifications();
+    final promotedFuture = LiveBridgePlatform.getPromotedNotificationAccess();
     final Future<bool> converterEnabledFuture =
         LiveBridgePlatform.getConverterEnabled();
     final Future<bool> keepAliveFuture =
@@ -221,7 +220,8 @@ class _SettingsReportBugScreenState extends State<SettingsReportBugScreen> {
       'permissions': <String, dynamic>{
         'listener_enabled': await listenerEnabledFuture,
         'notifications_granted': await notificationsGrantedFuture,
-        'can_post_promoted': await canPostPromotedFuture,
+        'can_post_promoted': (await promotedFuture).granted,
+        'promoted_access': (await promotedFuture).toMap(),
       },
       'settings': <String, dynamic>{
         'converter_enabled': await converterEnabledFuture,
@@ -231,6 +231,8 @@ class _SettingsReportBugScreenState extends State<SettingsReportBugScreen> {
         'conversion_log_enabled': await conversionLogEnabledFuture,
         'conversion_log_max_bytes': await conversionLogMaxBytesFuture,
         'network_speed_enabled': await networkSpeedEnabledFuture,
+        'network_speed_hide_when_locked':
+            await LiveBridgePlatform.getNetworkSpeedHideWhenLocked(),
         'network_speed_min_threshold_bytes_per_second':
             await networkSpeedThresholdFuture,
         'sync_dnd_enabled': await syncDndFuture,

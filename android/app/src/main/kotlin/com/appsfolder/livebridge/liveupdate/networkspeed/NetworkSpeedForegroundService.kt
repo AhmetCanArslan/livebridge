@@ -1,5 +1,11 @@
 package com.appsfolder.livebridge.liveupdate.networkspeed
 
+import android.app.KeyguardManager
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.IntentFilter
+import android.os.PowerManager
+import androidx.core.content.ContextCompat
 import android.app.Notification
 import android.app.Service
 import android.content.Intent
@@ -21,6 +27,17 @@ class NetworkSpeedForegroundService : Service() {
     private var workerThread: HandlerThread? = null
     private var workerHandler: Handler? = null
     private val mainHandler = Handler(Looper.getMainLooper())
+    @Volatile private var screenOff = false
+    private var screenReceiverRegistered = false
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            screenOff = intent?.action == Intent.ACTION_SCREEN_OFF ||
+                !(getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive
+            workerHandler?.post {
+                if (monitoringStarted) publishCurrentNotification()
+            }
+        }
+    }
     private var monitoringStarted = false
     private var lastTotalRxBytes = 0L
     private var lastTotalTxBytes = 0L
@@ -69,6 +86,7 @@ class NetworkSpeedForegroundService : Service() {
         notificationBuilder = NetworkSpeedNotificationBuilder(applicationContext)
         notificationManager = NotificationManagerCompat.from(applicationContext)
         notificationBuilder.ensureChannel()
+        screenOff = !(getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive
         workerThread = HandlerThread("LiveBridgeNetworkSpeed").also { thread ->
             thread.start()
             workerHandler = Handler(thread.looper)
@@ -76,6 +94,7 @@ class NetworkSpeedForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        syncScreenReceiver()
         if (!NetworkSpeedController.shouldRun(applicationContext, prefs)) {
             stopSelf()
             return START_NOT_STICKY
@@ -99,6 +118,10 @@ class NetworkSpeedForegroundService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        if (screenReceiverRegistered) {
+            unregisterReceiver(screenReceiver)
+            screenReceiverRegistered = false
+        }
         workerHandler?.removeCallbacksAndMessages(null)
         workerThread?.quitSafely()
         workerHandler = null
@@ -106,6 +129,23 @@ class NetworkSpeedForegroundService : Service() {
         notificationManager.cancel(NOTIFICATION_ID)
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()
+    }
+
+    private fun syncScreenReceiver() {
+        val needed = prefs.getNetworkSpeedHideWhenLocked()
+        if (needed == screenReceiverRegistered) return
+        if (needed) {
+            ContextCompat.registerReceiver(this, screenReceiver, IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_USER_PRESENT)
+            }, ContextCompat.RECEIVER_NOT_EXPORTED)
+            screenReceiverRegistered = true
+        } else {
+            unregisterReceiver(screenReceiver)
+            screenReceiverRegistered = false
+        }
+        screenOff = !(getSystemService(Context.POWER_SERVICE) as PowerManager).isInteractive
     }
 
     private fun startForegroundCompat(notification: Notification) {
@@ -139,7 +179,11 @@ class NetworkSpeedForegroundService : Service() {
     private fun buildCurrentNotification(): Notification {
         return notificationBuilder.build(
             sample = latestSample,
-            minPromotedBytesPerSecond = prefs.getNetworkSpeedMinThresholdBytesPerSecond()
+            minPromotedBytesPerSecond = prefs.getNetworkSpeedMinThresholdBytesPerSecond(),
+            allowPromotion = NetworkSpeedVisibilityPolicy.allowPromotion(
+                prefs.getNetworkSpeedHideWhenLocked(), screenOff,
+                (getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager).isKeyguardLocked
+            )
         )
     }
 
