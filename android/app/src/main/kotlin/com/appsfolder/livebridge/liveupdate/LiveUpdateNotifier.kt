@@ -9,7 +9,6 @@ import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -27,8 +26,6 @@ import android.media.session.MediaSession
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.SystemClock
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -135,7 +132,9 @@ object LiveUpdateNotifier {
         IconCompat.createWithBitmap(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888))
     }
     private val progressColor = Color.valueOf(15f / 255f, 118f / 255f, 110f / 255f, 1f).toArgb()
-    private val mainHandler = Handler(Looper.getMainLooper())
+    private val animationHandler = NotificationProcessing.handler
+    private var channelSignature: String? = null
+    private var channelsCheckedAt = 0L
 
     private val stateLock = Any()
     private val sbnToAggregateKey = mutableMapOf<String, String>()
@@ -153,46 +152,45 @@ object LiveUpdateNotifier {
     private val programmaticMirrorCancelDeadlines = mutableMapOf<Int, Long>()
     private var callMirrorGenerationCounter = 0L
 
+    @Synchronized
     fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return
         }
 
+        val prefs = ConverterPrefs(context)
+        val soundEnabled = prefs.getConvertedNotificationSoundEnabled()
+        val vibrationEnabled = prefs.getConvertedNotificationVibrationEnabled()
+        val signature = "${isRussianLocale(context)}|${prefs.getHideLockscreenContentEnabled()}|$soundEnabled|$vibrationEnabled"
+        val now = SystemClock.elapsedRealtime()
+        if (signature == channelSignature && now - channelsCheckedAt < 60_000L) return
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val soundEnabled = ConverterPrefs(context).getConvertedNotificationSoundEnabled()
         MirrorNotificationChannel.entries.forEach { channel ->
-            ensureMirrorChannel(
-                manager = manager,
-                context = context,
-                channel = channel,
-                audible = false
-            )
-            if (soundEnabled) {
-                ensureMirrorChannel(
-                    manager = manager,
-                    context = context,
-                    channel = channel,
-                    audible = true
-                )
+            ensureMirrorChannel(manager, context, channel, audible = false, vibrating = false)
+            if (soundEnabled || vibrationEnabled) {
+                ensureMirrorChannel(manager, context, channel, soundEnabled, vibrationEnabled)
             }
         }
+        channelSignature = signature
+        channelsCheckedAt = now
     }
 
     private fun ensureMirrorChannel(
         manager: NotificationManager,
         context: Context,
         channel: MirrorNotificationChannel,
-        audible: Boolean
+        audible: Boolean,
+        vibrating: Boolean
     ) {
         val lockscreenVisibility = mirrorChannelLockscreenVisibility(context)
-        val channelId = channel.id(audible)
+        val channelId = channel.id(audible, vibrating)
         val current = manager.getNotificationChannel(channelId)
         if (current == null) {
-            manager.createNotificationChannel(createChannel(context, channel, audible))
+            manager.createNotificationChannel(createChannel(context, channel, audible, vibrating))
             return
         }
 
-        val channelText = mirrorChannelText(context, channel, audible)
+        val channelText = mirrorChannelText(context, channel, audible, vibrating)
         val shouldUpdate =
             current.name?.toString() != channelText.name ||
                     current.description != channelText.description ||
@@ -210,16 +208,17 @@ object LiveUpdateNotifier {
     private fun createChannel(
         context: Context,
         channel: MirrorNotificationChannel,
-        audible: Boolean
+        audible: Boolean,
+        vibrating: Boolean
     ): NotificationChannel {
-        val channelText = mirrorChannelText(context, channel, audible)
+        val channelText = mirrorChannelText(context, channel, audible, vibrating)
         return NotificationChannel(
-            channel.id(audible),
+            channel.id(audible, vibrating),
             channelText.name,
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
             description = channelText.description
-            enableVibration(false)
+            enableVibration(vibrating)
             if (audible) {
                 setSound(
                     RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
@@ -244,6 +243,7 @@ object LiveUpdateNotifier {
     }
 
     fun clearRuntimeState() {
+        LiveUpdateNotificationListenerService.invalidateSnapshotCache()
         synchronized(stateLock) {
             sbnToAggregateKey.clear()
             aggregateStates.clear()
@@ -911,7 +911,7 @@ object LiveUpdateNotifier {
             }
         } catch (error: Throwable) {
             Log.e(TAG, "Failed to mirror notification: ${sbn.key}", error)
-            notMirroredResult()
+            notMirroredResult(retryNeeded = true)
         }
     }
 
@@ -1066,7 +1066,7 @@ object LiveUpdateNotifier {
         mirrorKey: String,
         generation: Long
     ) {
-        mainHandler.postDelayed({
+        animationHandler.postDelayed({
             if (LiveUpdateNotificationListenerService.isSourceNotificationActive(mirrorKey) == false) {
                 synchronized(stateLock) {
                     val state = callMirrorStates[mirrorKey]
@@ -1363,8 +1363,8 @@ object LiveUpdateNotifier {
         }
     }
 
-    private fun notMirroredResult(): MirrorResult {
-        return MirrorResult(mirrored = false)
+    private fun notMirroredResult(retryNeeded: Boolean = false): MirrorResult {
+        return MirrorResult(mirrored = false, retryNeeded = retryNeeded)
     }
 
     private fun mirroredResult(dedupKind: MirrorDedupKind = MirrorDedupKind.NONE): MirrorResult {
@@ -1391,7 +1391,8 @@ object LiveUpdateNotifier {
     private fun mirrorChannelText(
         context: Context,
         channel: MirrorNotificationChannel,
-        audible: Boolean = false
+        audible: Boolean = false,
+        vibrating: Boolean = false
     ): MirrorChannelText {
         val isRussian = isRussianLocale(context)
         val base = when (channel) {
@@ -1521,11 +1522,12 @@ object LiveUpdateNotifier {
                 }
             }
         }
-        if (!audible) {
-            return base
+        val effects = buildList {
+            if (audible) add(if (isRussian) "звук" else "sound")
+            if (vibrating) add(if (isRussian) "вибрация" else "vibration")
         }
-        return MirrorChannelText(
-            name = if (isRussian) "${base.name} (со звуком)" else "${base.name} (sound)",
+        return if (effects.isEmpty()) base else MirrorChannelText(
+            name = "${base.name} (${effects.joinToString(", ")})",
             description = base.description
         )
     }
@@ -1756,6 +1758,7 @@ object LiveUpdateNotifier {
         val hideLockscreenContent = runtimePrefs.getHideLockscreenContentEnabled()
         val convertedNotificationSound =
             runtimePrefs.getConvertedNotificationSoundEnabled()
+        val convertedNotificationVibration = runtimePrefs.getConvertedNotificationVibrationEnabled()
         val visibility = when {
             preferMediaControls &&
                     !runtimePrefs.getSmartMediaPlaybackShowOnLockScreen() ->
@@ -1794,7 +1797,7 @@ object LiveUpdateNotifier {
 
         val builder = NotificationCompat.Builder(
             context,
-            mirrorChannel.id(convertedNotificationSound)
+            mirrorChannel.id(convertedNotificationSound, convertedNotificationVibration)
         )
             .setContentTitle(contentTitle)
             .setContentText(contentText)
@@ -1817,12 +1820,13 @@ object LiveUpdateNotifier {
             .setVisibility(visibility)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-        if (convertedNotificationSound) {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                builder.setDefaults(Notification.DEFAULT_SOUND)
-            }
-        } else {
+        if (!convertedNotificationSound && !convertedNotificationVibration) {
             builder.setSilent(true).setDefaults(0)
+        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            builder.setDefaults(
+                (if (convertedNotificationSound) Notification.DEFAULT_SOUND else 0) or
+                    (if (convertedNotificationVibration) Notification.DEFAULT_VIBRATE else 0)
+            )
         }
 
         if (callChronometerStart != null) {
@@ -2012,6 +2016,7 @@ object LiveUpdateNotifier {
     ) {
         try {
             notifyMirroredNotification(
+                context = context,
                 manager = manager,
                 notificationId = notificationId,
                 notification = promotedNotification,
@@ -2039,6 +2044,7 @@ object LiveUpdateNotifier {
                 callChronometerStartWallClockMs = callChronometerStartWallClockMs
             )
             notifyMirroredNotification(
+                context = context,
                 manager = manager,
                 notificationId = notificationId,
                 notification = fallback,
@@ -3089,7 +3095,7 @@ object LiveUpdateNotifier {
         delayMs: Long,
         otpShortTextOverride: String?
     ) {
-        mainHandler.postDelayed({
+        animationHandler.postDelayed({
             if (!isOtpAnimationGenerationCurrent(otpMatch.aggregateKey, generation)) {
                 return@postDelayed
             }
@@ -3257,7 +3263,7 @@ object LiveUpdateNotifier {
         aggregateKey: String,
         generation: Long
     ) {
-        mainHandler.postDelayed({
+        animationHandler.postDelayed({
             val frame = synchronized(stateLock) {
                 if (!isSmartAnimationGenerationCurrentLocked(aggregateKey, generation)) {
                     return@synchronized null
@@ -3478,32 +3484,11 @@ object LiveUpdateNotifier {
         }
     }
 
-    private fun resolveAppSmallIcon(context: Context, packageName: String): IconCompat? {
-        return try {
-            val appInfo = context.packageManager.getApplicationInfo(packageName, 0)
-            if (appInfo.icon == 0) {
-                null
-            } else {
-                val packageContext = context.createPackageContext(packageName, 0)
-                IconCompat.createWithResource(
-                    packageContext.resources,
-                    packageName,
-                    appInfo.icon
-                )
-            }
-        } catch (_: Exception) {
-            null
-        }
-    }
+    private fun resolveAppSmallIcon(context: Context, packageName: String): IconCompat? =
+        AppMetadataCache.get(context, packageName).smallIcon
 
-    private fun resolveAppLargeIconBitmap(context: Context, packageName: String): Bitmap? {
-        return try {
-            val drawable = context.packageManager.getApplicationIcon(packageName)
-            drawableToBitmap(drawable)
-        } catch (_: Exception) {
-            null
-        }
-    }
+    private fun resolveAppLargeIconBitmap(context: Context, packageName: String): Bitmap? =
+        AppMetadataCache.get(context, packageName).largeIcon
 
     private fun resolveReadableLargeIcon(
         context: Context,
@@ -4287,6 +4272,9 @@ object LiveUpdateNotifier {
             .trim()
     }
 
+    internal fun needsPeriodicRefresh(notification: Notification): Boolean =
+        isLikelyMediaPlaybackNotification(notification)
+
     private fun isLikelyMediaPlaybackNotification(notification: Notification): Boolean {
         if (notification.category == Notification.CATEGORY_TRANSPORT) {
             return true
@@ -4470,14 +4458,8 @@ object LiveUpdateNotifier {
         }
     }
 
-    private fun resolveAppName(context: Context, packageName: String): String {
-        return try {
-            val appInfo = context.packageManager.getApplicationInfo(packageName, 0)
-            context.packageManager.getApplicationLabel(appInfo).toString()
-        } catch (_: PackageManager.NameNotFoundException) {
-            packageName
-        }
-    }
+    private fun resolveAppName(context: Context, packageName: String): String =
+        AppMetadataCache.get(context, packageName).label
 
     private fun resolveStableWhen(source: Notification, fallbackPostTime: Long): Long {
         val sourceWhen = source.`when`
@@ -4599,12 +4581,21 @@ object LiveUpdateNotifier {
     }
 
     private fun notifyMirroredNotification(
+        context: Context,
         manager: NotificationManagerCompat,
         notificationId: Int,
         notification: Notification,
         mirrorKey: String
     ) {
+        val prefs = ConverterPrefs(context)
+        if (!prefs.getConverterEnabled() ||
+            (prefs.getSyncDndEnabled() && isDoNotDisturbActive(context))) return
         manager.notify(notificationId, notification)
+        // Disabling can race with background construction; never leave a late mirror behind.
+        if (!prefs.getConverterEnabled()) {
+            manager.cancel(notificationId)
+            return
+        }
         synchronized(stateLock) {
             pruneProgrammaticMirrorCancelsLocked(SystemClock.elapsedRealtime())
             mirrorKeysByNotificationId[notificationId] = mirrorKey
@@ -4844,7 +4835,8 @@ object LiveUpdateNotifier {
 
     data class MirrorResult(
         val mirrored: Boolean,
-        val dedupKind: MirrorDedupKind = MirrorDedupKind.NONE
+        val dedupKind: MirrorDedupKind = MirrorDedupKind.NONE,
+        val retryNeeded: Boolean = false
     )
 
     enum class MirrorDedupKind {
@@ -4864,13 +4856,12 @@ object LiveUpdateNotifier {
         MISCELLANEOUS("livebridge_miscellaneous_conversions"),
         BYPASS("livebridge_bypass_applications");
 
-        fun id(audible: Boolean): String {
-            return if (audible) "${id}_sound" else id
-        }
+        fun id(audible: Boolean, vibrating: Boolean = false): String =
+            id + (if (audible) "_sound" else "") + (if (vibrating) "_vibration" else "")
 
-        fun matches(channelId: String?): Boolean {
-            return channelId == id || channelId == id(true)
-        }
+        fun matches(channelId: String?): Boolean =
+            channelId == id(false) || channelId == id(true) ||
+                channelId == id(false, true) || channelId == id(true, true)
     }
 
     private data class MirrorChannelText(

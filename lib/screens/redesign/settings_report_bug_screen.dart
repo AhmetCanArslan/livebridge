@@ -104,6 +104,8 @@ class _SettingsReportBugScreenState extends State<SettingsReportBugScreen> {
         LiveBridgePlatform.getPreventMirrorDismissEnabled();
     final Future<bool> hideLockscreenContentFuture =
         LiveBridgePlatform.getHideLockscreenContentEnabled();
+    final Future<bool> convertedNotificationVibrationFuture =
+        LiveBridgePlatform.getConvertedNotificationVibrationEnabled();
     final Future<bool> convertedNotificationSoundFuture =
         LiveBridgePlatform.getConvertedNotificationSoundEnabled();
     final Future<bool> hintsDisabledFuture =
@@ -232,6 +234,8 @@ class _SettingsReportBugScreenState extends State<SettingsReportBugScreen> {
         'sync_dnd_enabled': await syncDndFuture,
         'prevent_mirror_dismiss_enabled': await preventDismissingFuture,
         'hide_lockscreen_content_enabled': await hideLockscreenContentFuture,
+        'converted_notification_vibration_enabled':
+            await convertedNotificationVibrationFuture,
         'converted_notification_sound_enabled':
             await convertedNotificationSoundFuture,
         'hints_disabled': await hintsDisabledFuture,

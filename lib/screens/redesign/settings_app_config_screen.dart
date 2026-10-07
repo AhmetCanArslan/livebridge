@@ -35,6 +35,7 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
   bool _preventDismissing = false;
   bool _hideLockscreenContent = false;
   bool _convertedNotificationSound = false;
+  bool _convertedNotificationVibration = false;
   bool _hintsDisabled = false;
   bool _conversionLogEnabled = false;
   String _appLanguageId = appLanguageSystemId;
@@ -60,6 +61,8 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
           LiveBridgePlatform.getHideLockscreenContentEnabled();
       final Future<bool> convertedNotificationSoundFuture =
           LiveBridgePlatform.getConvertedNotificationSoundEnabled();
+      final Future<bool> convertedNotificationVibrationFuture =
+          LiveBridgePlatform.getConvertedNotificationVibrationEnabled();
       final Future<bool> hintsDisabledFuture =
           LiveBridgePlatform.getHintsDisabled();
       final Future<bool> conversionLogEnabledFuture =
@@ -75,6 +78,8 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
       final bool hideLockscreenContent = await hideLockscreenContentFuture;
       final bool convertedNotificationSound =
           await convertedNotificationSoundFuture;
+      final bool convertedNotificationVibration =
+          await convertedNotificationVibrationFuture;
       final bool hintsDisabled = await hintsDisabledFuture;
       final bool conversionLogEnabled = await conversionLogEnabledFuture;
       final int conversionLogMaxBytes = await conversionLogMaxBytesFuture;
@@ -96,6 +101,7 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
         _preventDismissing = preventDismissing;
         _hideLockscreenContent = hideLockscreenContent;
         _convertedNotificationSound = convertedNotificationSound;
+        _convertedNotificationVibration = convertedNotificationVibration;
         _hintsDisabled = hintsDisabled;
         _conversionLogEnabled = conversionLogEnabled;
         _appLanguageId = appLanguageId;
@@ -144,6 +150,12 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
     }
     setState(() => _convertedNotificationSound = value);
     await LiveBridgePlatform.setConvertedNotificationSoundEnabled(value);
+  }
+
+  Future<void> _setConvertedNotificationVibration(bool value) async {
+    if (value == _convertedNotificationVibration) return;
+    setState(() => _convertedNotificationVibration = value);
+    await LiveBridgePlatform.setConvertedNotificationVibrationEnabled(value);
   }
 
   Future<void> _setHintsDisabled(bool value) async {
@@ -298,6 +310,20 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
           final bool nextValue = !_convertedNotificationSound;
           unawaited(LiveBridgeHaptics.toggle(nextValue));
           unawaited(_setConvertedNotificationSound(nextValue));
+        },
+      ),
+      LbListItemData(
+        title: strings.convertedNotificationVibrationTitle,
+        description: strings.convertedNotificationVibrationDescription,
+        showChevron: false,
+        toggleValue: _convertedNotificationVibration,
+        onToggle: (bool value) {
+          unawaited(_setConvertedNotificationVibration(value));
+        },
+        onTap: () {
+          final bool nextValue = !_convertedNotificationVibration;
+          unawaited(LiveBridgeHaptics.toggle(nextValue));
+          unawaited(_setConvertedNotificationVibration(nextValue));
         },
       ),
       LbListItemData(

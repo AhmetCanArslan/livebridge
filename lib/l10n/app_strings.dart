@@ -1692,6 +1692,27 @@ class AppStrings {
     ko: '변환된 알림 소리',
   );
 
+  String get convertedNotificationVibrationTitle => tr(
+    en: 'Converted notification vibration',
+    ru: 'Вибрация конвертированных уведомлений',
+    tr: 'Dönüştürülen bildirim titreşimi',
+    ptBr: 'Vibração das notificações convertidas',
+    zhHans: '转换通知振动',
+    zhHant: '轉換通知震動',
+    ko: '변환된 알림 진동',
+  );
+
+  String get convertedNotificationVibrationDescription => tr(
+    en: 'vibrates when a converted notification first appears; system channel settings take priority',
+    ru: 'вибрирует при первом появлении уведомления; системные настройки канала имеют приоритет',
+    tr: 'dönüştürülen bildirim ilk göründüğünde titreşir; sistem kanal ayarları önceliklidir',
+    ptBr:
+        'vibra quando uma notificação convertida aparece; as configurações do canal têm prioridade',
+    zhHans: '转换通知首次出现时振动；系统通知渠道设置优先',
+    zhHant: '轉換通知首次出現時震動；系統通知管道設定優先',
+    ko: '변환된 알림이 처음 표시될 때 진동합니다. 시스템 채널 설정이 우선합니다.',
+  );
+
   String get disableHintsTitle => tr(
     en: 'Disable hints',
     ru: 'Отключить подсказки',

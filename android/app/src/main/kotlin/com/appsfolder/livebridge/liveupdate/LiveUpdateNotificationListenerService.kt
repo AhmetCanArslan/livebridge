@@ -1,11 +1,13 @@
 package com.appsfolder.livebridge.liveupdate
 
 import android.app.Notification
+import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -17,6 +19,12 @@ import kotlin.math.min
 class LiveUpdateNotificationListenerService : NotificationListenerService() {
     private val prefs by lazy { ConverterPrefs(applicationContext) }
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val processingHandler = NotificationProcessing.handler
+    private val refreshPolicy = SnapshotRefreshPolicy()
+    private var lastSettings: Map<String, *>? = null
+    private var lastInterruptionFilter: Int? = null
+    @Volatile
+    private var destroyed = false
     private val selfDismissLock = Any()
     private val selfDismissedSourceKeys = mutableSetOf<String>()
     private var rebindAttempts = 0
@@ -43,32 +51,40 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
             if (!listenerConnected) {
                 return
             }
-            if (!prefs.getConverterEnabled()) {
-                scheduleSnapshotSync()
-                return
-            }
-
-            val snapshots = try {
-                activeNotifications?.toList().orEmpty()
-            } catch (error: Throwable) {
-                Log.w(TAG, "Snapshot sync failed while reading active notifications", error)
-                listenerConnected = false
-                scheduleRebind("snapshot_sync_failed")
-                return
-            }
-
-            for (sbn in snapshots) {
-                if (sbn.packageName == packageName) {
-                    continue
-                }
+            processingHandler.post {
+                if (destroyed || !listenerConnected) return@post
                 try {
-                    processIncomingNotification(sbn)
+                    val settings = prefs.runtimeSettingsSnapshot()
+                    val filter = (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+                        .currentInterruptionFilter
+                    if (settings != lastSettings || filter != lastInterruptionFilter) {
+                        refreshPolicy.invalidate()
+                        lastSettings = settings
+                        lastInterruptionFilter = filter
+                    }
+                    if (!prefs.getConverterEnabled()) {
+                        refreshPolicy.invalidate()
+                        mainHandler.post { if (!destroyed) scheduleSnapshotSync() }
+                        return@post
+                    }
+                    val snapshots = activeNotifications?.toList().orEmpty()
+                    refreshPolicy.retain(snapshots.mapTo(mutableSetOf()) { it.key })
+                    for (sbn in snapshots) {
+                        if (sbn.packageName == packageName) continue
+                        if (!refreshPolicy.needsRefresh(
+                                sbn.key, sbn.postTime, SystemClock.elapsedRealtime(),
+                                LiveUpdateNotifier.needsPeriodicRefresh(sbn.notification)
+                            )) continue
+                        processSafely(sbn)
+                    }
                 } catch (error: Throwable) {
-                    Log.e(TAG, "Snapshot sync processing failed: ${sbn.key}", error)
+                    Log.w(TAG, "Snapshot sync failed", error)
+                    listenerConnected = false
+                    mainHandler.post { scheduleRebind("snapshot_sync_failed") }
                 }
+                mainHandler.post { if (!destroyed) scheduleSnapshotSync() }
             }
-
-            scheduleSnapshotSync()
+            return
         }
     }
 
@@ -102,28 +118,19 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
             return
         }
 
-        val snapshots = try {
-            activeNotifications?.toList().orEmpty()
-        } catch (error: Throwable) {
-            Log.w(TAG, "Unable to read active notifications on connect", error)
-            emptyList()
-        }
-
-        if (snapshots.isEmpty()) {
-            return
-        }
-
-        for (sbn in snapshots) {
-            if (sbn.packageName == packageName) {
-                continue
-            }
-            try {
-                processIncomingNotification(sbn)
+        processingHandler.post {
+            if (destroyed || !listenerConnected) return@post
+            refreshPolicy.invalidate()
+            val snapshots = try {
+                activeNotifications?.toList().orEmpty()
             } catch (error: Throwable) {
-                Log.e(TAG, "Failed to restore active notification: ${sbn.key}", error)
+                Log.w(TAG, "Unable to read active notifications on connect", error)
+                emptyList()
+            }
+            for (sbn in snapshots) {
+                if (sbn.packageName != packageName) processSafely(sbn)
             }
         }
-        scheduleSnapshotSync()
     }
 
     override fun onListenerDisconnected() {
@@ -139,36 +146,31 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
         if (sbn.packageName == packageName) {
             return
         }
-        if (!prefs.getConverterEnabled()) {
-            LiveUpdateNotifier.cancelMirrored(applicationContext, sbn)
-            return
-        }
-
-        try {
-            processIncomingNotification(sbn)
-        } catch (error: Throwable) {
-            Log.e(TAG, "Failed to process posted notification: ${sbn.key}", error)
+        processingHandler.post {
+            if (!destroyed) processSafely(sbn)
         }
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         sbn ?: return
-        if (sbn.packageName == packageName) {
-            LiveUpdateNotifier.handleMirroredRemoved(applicationContext, sbn)
-            return
-        }
-        if (consumeSelfDismissedSourceKey(sbn.key)) {
-            return
-        }
-
-        try {
-            LiveUpdateNotifier.cancelMirrored(applicationContext, sbn)
-        } catch (error: Throwable) {
-            Log.e(TAG, "Failed to process removed notification: ${sbn.key}", error)
+        processingHandler.post {
+            if (destroyed) return@post
+            if (sbn.packageName == packageName) {
+                LiveUpdateNotifier.handleMirroredRemoved(applicationContext, sbn)
+                return@post
+            }
+            if (consumeSelfDismissedSourceKey(sbn.key)) return@post
+            refreshPolicy.remove(sbn.key)
+            try {
+                LiveUpdateNotifier.cancelMirrored(applicationContext, sbn)
+            } catch (error: Throwable) {
+                Log.e(TAG, "Failed to process removed notification: ${sbn.key}", error)
+            }
         }
     }
 
     override fun onDestroy() {
+        destroyed = true
         listenerConnected = false
         mainHandler.removeCallbacksAndMessages(null)
         rebindScheduled = false
@@ -187,8 +189,21 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
         }
     }
 
-    private fun processIncomingNotification(sbn: StatusBarNotification) {
+    private fun processSafely(sbn: StatusBarNotification) {
+        try {
+            if (processIncomingNotification(sbn)) {
+                refreshPolicy.record(sbn.key, sbn.postTime, SystemClock.elapsedRealtime())
+            } else {
+                refreshPolicy.remove(sbn.key)
+            }
+        } catch (error: Throwable) {
+            Log.e(TAG, "Failed to process notification: ${sbn.key}", error)
+        }
+    }
+
+    private fun processIncomingNotification(sbn: StatusBarNotification): Boolean {
         val result = LiveUpdateNotifier.maybeMirror(applicationContext, prefs, sbn)
+        if (!prefs.getConverterEnabled()) return false
         if (result.mirrored) {
             ConversionLogStore.upsertMirroredNotification(
                 context = applicationContext,
@@ -199,6 +214,7 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
             )
         }
         maybeDismissOriginalSource(sbn, result)
+        return !result.retryNeeded
     }
 
     private fun extractLogTitle(sbn: StatusBarNotification): String {
@@ -207,11 +223,7 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
             ?.takeIf { it.isNotEmpty() }
             ?: extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString()?.trim()
                 ?.takeIf { it.isNotEmpty() }
-            ?: runCatching {
-                val appInfo = packageManager.getApplicationInfo(sbn.packageName, 0)
-                packageManager.getApplicationLabel(appInfo)?.toString()?.trim()
-            }.getOrNull().takeUnless { it.isNullOrBlank() }
-            ?: sbn.packageName
+            ?: AppMetadataCache.get(applicationContext, sbn.packageName).label
     }
 
     private fun extractLogText(notification: android.app.Notification): String {
@@ -316,6 +328,11 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
         private var activeInstance: LiveUpdateNotificationListenerService? = null
 
         fun isConnected(): Boolean = activeInstance?.listenerConnected == true
+
+        internal fun invalidateSnapshotCache() {
+            val listener = activeInstance ?: return
+            listener.processingHandler.post { listener.refreshPolicy.invalidate() }
+        }
 
         fun isSourceNotificationActive(key: String): Boolean? {
             val listener = activeInstance ?: return null

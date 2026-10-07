@@ -337,6 +337,15 @@ class MainActivity : FlutterActivity() {
                 res.success(true)
             }
 
+            "getConvertedNotificationVibrationEnabled" -> {
+                res.success(prefs.getConvertedNotificationVibrationEnabled())
+            }
+            "setConvertedNotificationVibrationEnabled" -> {
+                prefs.setConvertedNotificationVibrationEnabled(call.argument<Boolean>("value") ?: false)
+                LiveUpdateNotifier.ensureChannel(applicationContext)
+                res.success(true)
+            }
+
             "getHintsDisabled" -> res.success(prefs.getHintsDisabled())
             "setHintsDisabled" -> {
                 prefs.setHintsDisabled(call.argument<Boolean>("value") ?: false)
@@ -364,12 +373,25 @@ class MainActivity : FlutterActivity() {
             "getConversionLogMaxBytes" -> res.success(prefs.getConversionLogMaxBytes())
             "setConversionLogMaxBytes" -> {
                 prefs.setConversionLogMaxBytes(call.argument<Number>("value")?.toInt() ?: 0)
-                ConversionLogStore.trimToPrefs(applicationContext, prefs)
-                res.success(true)
+                conversionLogExecutor.execute {
+                    try {
+                        ConversionLogStore.trimToPrefs(applicationContext, prefs)
+                        runOnUiThread { res.success(true) }
+                    } catch (error: Exception) {
+                        runOnUiThread { res.error("conversion_log_trim_failed", error.message, null) }
+                    }
+                }
             }
 
             "getConversionLogEntries" -> {
-                res.success(ConversionLogStore.getEntriesRaw(applicationContext))
+                conversionLogExecutor.execute {
+                    try {
+                        val raw = ConversionLogStore.getEntriesRaw(applicationContext)
+                        runOnUiThread { res.success(raw) }
+                    } catch (error: Exception) {
+                        runOnUiThread { res.error("conversion_log_failed", error.message, null) }
+                    }
+                }
             }
 
             "getConversionLogEntriesPage" -> {
@@ -710,7 +732,7 @@ class MainActivity : FlutterActivity() {
     private fun afterSettingsBackupImported(prefs: ConverterPrefs) {
         AppPresentationOverridesLoader.invalidate()
         LiveParserDictionaryLoader.invalidate()
-        ConversionLogStore.trimToPrefs(applicationContext, prefs)
+        conversionLogExecutor.execute { ConversionLogStore.trimToPrefs(applicationContext, prefs) }
         LiveUpdateNotifier.ensureChannel(applicationContext)
         applyConverterEnabled(prefs, prefs.getConverterEnabled())
         LiveBridgeTileService.requestStateSync(applicationContext)
@@ -1014,7 +1036,7 @@ class MainActivity : FlutterActivity() {
         val offset = call.argument<Number>("offset")?.toInt() ?: 0
         val limit = call.argument<Number>("limit")?.toInt() ?: 10
 
-        appsLoaderExecutor.execute {
+        conversionLogExecutor.execute {
             try {
                 val page = ConversionLogStore.getEntriesPageRaw(
                     context = applicationContext,
@@ -1224,6 +1246,7 @@ class MainActivity : FlutterActivity() {
         private var installedAppsCacheAtMs: Long = 0L
         private val appIconBytesCache: MutableMap<String, ByteArray> = mutableMapOf()
         private val appsLoaderExecutor = Executors.newSingleThreadExecutor()
+        private val conversionLogExecutor = Executors.newSingleThreadExecutor()
         private val CHINESE_DEVICE_MARKERS = setOf(
             "xiaomi",
             "redmi",
