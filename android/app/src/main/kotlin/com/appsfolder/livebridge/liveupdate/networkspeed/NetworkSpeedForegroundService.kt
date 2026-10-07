@@ -10,6 +10,7 @@ import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import com.appsfolder.livebridge.liveupdate.ConverterPrefs
 
@@ -80,7 +81,17 @@ class NetworkSpeedForegroundService : Service() {
             return START_NOT_STICKY
         }
 
-        startForegroundCompat(buildCurrentNotification())
+        try {
+            startForegroundCompat(buildCurrentNotification())
+        } catch (error: IllegalStateException) {
+            Log.w("NetworkSpeedService", "System refused foreground promotion", error)
+            stopSelf()
+            return START_NOT_STICKY
+        } catch (error: SecurityException) {
+            Log.w("NetworkSpeedService", "System denied foreground promotion", error)
+            stopSelf()
+            return START_NOT_STICKY
+        }
         startMonitoringIfNeeded()
         return START_STICKY
     }
@@ -102,7 +113,7 @@ class NetworkSpeedForegroundService : Service() {
             startForeground(
                 NOTIFICATION_ID,
                 notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MANIFEST
             )
         } else {
             @Suppress("DEPRECATION")

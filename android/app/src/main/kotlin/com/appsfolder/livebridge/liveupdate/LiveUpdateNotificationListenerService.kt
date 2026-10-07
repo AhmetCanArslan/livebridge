@@ -22,10 +22,27 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
     private var rebindAttempts = 0
     private var rebindScheduled = false
     private var snapshotSyncScheduled = false
+    @Volatile
+    private var listenerConnected = false
+
+    private val rebindRunnable = object : Runnable {
+        override fun run() {
+            rebindScheduled = false
+            if (listenerConnected || !isListenerEnabled(applicationContext)) {
+                return
+            }
+            requestRebindIfEnabled(applicationContext, "listener_disconnected")
+            rebindAttempts++
+            scheduleRebind("retry")
+        }
+    }
 
     private val snapshotSyncRunnable = object : Runnable {
         override fun run() {
             snapshotSyncScheduled = false
+            if (!listenerConnected) {
+                return
+            }
             if (!prefs.getConverterEnabled()) {
                 scheduleSnapshotSync()
                 return
@@ -35,8 +52,8 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
                 activeNotifications?.toList().orEmpty()
             } catch (error: Throwable) {
                 Log.w(TAG, "Snapshot sync failed while reading active notifications", error)
+                listenerConnected = false
                 scheduleRebind("snapshot_sync_failed")
-                scheduleSnapshotSync()
                 return
             }
 
@@ -66,14 +83,17 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
 
         LiveUpdateNotifier.ensureChannel(applicationContext)
         NetworkSpeedController.sync(applicationContext, prefs)
-        scheduleSnapshotSync()
     }
 
     override fun onListenerConnected() {
         super.onListenerConnected()
+        listenerConnected = true
+        mainHandler.removeCallbacks(rebindRunnable)
         rebindAttempts = 0
         rebindScheduled = false
+        KeepAliveForegroundService.sync(applicationContext, prefs)
         NetworkSpeedController.sync(applicationContext, prefs)
+        scheduleSnapshotSync()
 
         if (!prefs.getConverterEnabled()) {
             LiveUpdateNotifier.clearRuntimeState()
@@ -108,7 +128,9 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
 
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
-        NetworkSpeedController.sync(applicationContext, prefs)
+        listenerConnected = false
+        mainHandler.removeCallbacks(snapshotSyncRunnable)
+        snapshotSyncScheduled = false
         scheduleRebind("listener_disconnected")
     }
 
@@ -147,6 +169,7 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onDestroy() {
+        listenerConnected = false
         mainHandler.removeCallbacksAndMessages(null)
         rebindScheduled = false
         snapshotSyncScheduled = false
@@ -267,24 +290,21 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             return
         }
-        if (rebindScheduled) {
+        if (listenerConnected || rebindScheduled || !isListenerEnabled(applicationContext)) {
+            return
+        }
+        if (rebindAttempts >= MAX_REBIND_ATTEMPTS) {
+            Log.w(TAG, "Listener rebind attempts exhausted ($reason)")
             return
         }
 
         val delayMs = min(MAX_REBIND_DELAY_MS, INITIAL_REBIND_DELAY_MS shl rebindAttempts)
         rebindScheduled = true
-        mainHandler.postDelayed({
-            rebindScheduled = false
-            val requested = requestRebindIfEnabled(applicationContext, reason)
-            if (!requested) {
-                return@postDelayed
-            }
-            rebindAttempts = min(rebindAttempts + 1, MAX_REBIND_ATTEMPTS)
-        }, delayMs)
+        mainHandler.postDelayed(rebindRunnable, delayMs)
     }
 
     private fun scheduleSnapshotSync() {
-        if (snapshotSyncScheduled) {
+        if (!listenerConnected || snapshotSyncScheduled) {
             return
         }
         snapshotSyncScheduled = true
@@ -295,8 +315,11 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
         @Volatile
         private var activeInstance: LiveUpdateNotificationListenerService? = null
 
+        fun isConnected(): Boolean = activeInstance?.listenerConnected == true
+
         fun isSourceNotificationActive(key: String): Boolean? {
-            return activeInstance?.isSourceNotificationActive(key)
+            val listener = activeInstance ?: return null
+            return if (listener.listenerConnected) listener.isSourceNotificationActive(key) else null
         }
         private const val TAG = "LiveUpdateListener"
         private const val INITIAL_REBIND_DELAY_MS = 1_000L
@@ -304,7 +327,7 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
         private const val MAX_REBIND_ATTEMPTS = 6
         private const val SNAPSHOT_SYNC_INTERVAL_MS = 4_000L
 
-        private fun requestRebindIfEnabled(context: Context, reason: String): Boolean {
+        fun requestRebindIfEnabled(context: Context, reason: String): Boolean {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
                 return false
             }
@@ -323,7 +346,7 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
             }
         }
 
-        private fun isListenerEnabled(context: Context): Boolean {
+        fun isListenerEnabled(context: Context): Boolean {
             val enabled = Settings.Secure.getString(
                 context.contentResolver,
                 "enabled_notification_listeners"

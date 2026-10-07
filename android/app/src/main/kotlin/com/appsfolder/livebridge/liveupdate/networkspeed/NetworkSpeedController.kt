@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.appsfolder.livebridge.liveupdate.ConverterPrefs
@@ -25,10 +26,16 @@ object NetworkSpeedController {
     }
 
     fun start(context: Context) {
-        ContextCompat.startForegroundService(
-            context,
-            Intent(context, NetworkSpeedForegroundService::class.java)
-        )
+        try {
+            ContextCompat.startForegroundService(
+                context,
+                Intent(context, NetworkSpeedForegroundService::class.java)
+            )
+        } catch (error: IllegalStateException) {
+            Log.w("NetworkSpeedController", "System deferred network monitor start", error)
+        } catch (error: SecurityException) {
+            Log.w("NetworkSpeedController", "System denied network monitor start", error)
+        }
     }
 
     fun stop(context: Context) {
