@@ -52,6 +52,21 @@ class LiveBridgePlatform {
   static Future<bool> importLiveBridgeSettingsBackup(String value) =>
       _askBool('importLiveBridgeSettingsBackup', {'value': value});
 
+  static Future<bool> getHideFromRecentsEnabled() =>
+      _askBool('getHideFromRecentsEnabled');
+  static Future<bool> setHideFromRecentsEnabled(bool value) =>
+      _askBool('setHideFromRecentsEnabled', {'value': value});
+  static Future<String> getSourceChannels() => _askStr('getSourceChannels');
+  static Future<bool> setSourceChannelEnabled(
+    String packageName,
+    String channelId,
+    bool enabled,
+  ) => _askBool('setSourceChannelEnabled', {
+    'packageName': packageName,
+    'channelId': channelId,
+    'enabled': enabled,
+  });
+
   static Future<String> getPackageRules() => _askStr('getPackageRules');
   static Future<bool> setPackageRules(String value) =>
       _askBool('setPackageRules', {'value': value});

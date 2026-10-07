@@ -21,6 +21,7 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val processingHandler = NotificationProcessing.handler
     private val refreshPolicy = SnapshotRefreshPolicy()
+    private val sourceLifecycle = NotificationProcessing.sourceLifecycle
     private var lastSettings: Map<String, *>? = null
     private var lastInterruptionFilter: Int? = null
     @Volatile
@@ -67,7 +68,9 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
                         mainHandler.post { if (!destroyed) scheduleSnapshotSync() }
                         return@post
                     }
-                    val snapshots = activeNotifications?.toList().orEmpty()
+                    val snapshots = activeNotifications?.toList()
+                        ?: throw IllegalStateException("Notification snapshot unavailable")
+                    reconcileSources(snapshots)
                     refreshPolicy.retain(snapshots.mapTo(mutableSetOf()) { it.key })
                     for (sbn in snapshots) {
                         if (sbn.packageName == packageName) continue
@@ -122,11 +125,12 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
             if (destroyed || !listenerConnected) return@post
             refreshPolicy.invalidate()
             val snapshots = try {
-                activeNotifications?.toList().orEmpty()
+                activeNotifications?.toList()
             } catch (error: Throwable) {
                 Log.w(TAG, "Unable to read active notifications on connect", error)
-                emptyList()
-            }
+                null
+            } ?: return@post
+            reconcileSources(snapshots)
             for (sbn in snapshots) {
                 if (sbn.packageName != packageName) processSafely(sbn)
             }
@@ -147,7 +151,10 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
             return
         }
         processingHandler.post {
-            if (!destroyed) processSafely(sbn)
+            if (!destroyed) {
+                sourceLifecycle.posted(sbn.key)
+                processSafely(sbn)
+            }
         }
     }
 
@@ -160,6 +167,9 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
                 return@post
             }
             if (consumeSelfDismissedSourceKey(sbn.key)) return@post
+            if (!sourceLifecycle.removed(sbn.key)) return@post
+            // Rebuild any remaining members of an aggregate on the next snapshot.
+            refreshPolicy.invalidate()
             refreshPolicy.remove(sbn.key)
             try {
                 LiveUpdateNotifier.cancelMirrored(applicationContext, sbn)
@@ -189,6 +199,16 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
         }
     }
 
+    private fun reconcileSources(snapshots: List<StatusBarNotification>) {
+        val activeKeys = snapshots.asSequence().filter { it.packageName != packageName }.map { it.key }.toSet()
+        val missing = sourceLifecycle.reconcile(activeKeys, LiveUpdateNotifier.trackedSourceKeys())
+        if (missing.isNotEmpty()) refreshPolicy.invalidate()
+        for (key in missing) {
+            refreshPolicy.remove(key)
+            LiveUpdateNotifier.cancelMirroredSourceKey(applicationContext, key)
+        }
+    }
+
     private fun processSafely(sbn: StatusBarNotification) {
         try {
             if (processIncomingNotification(sbn)) {
@@ -202,6 +222,11 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
     }
 
     private fun processIncomingNotification(sbn: StatusBarNotification): Boolean {
+        val ranking = Ranking()
+        val channelName = try {
+            if (currentRanking.getRanking(sbn.key, ranking)) ranking.channel?.name?.toString() else null
+        } catch (_: Exception) { null }
+        SourceChannelStore.observe(applicationContext, sbn.packageName, sbn.notification.channelId, channelName)
         val result = LiveUpdateNotifier.maybeMirror(applicationContext, prefs, sbn)
         if (!prefs.getConverterEnabled()) return false
         if (result.mirrored) {
@@ -272,9 +297,11 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
         }
 
         rememberSelfDismissedSourceKey(sbn.key)
+        sourceLifecycle.retainMirrorAfterRemoval(sbn.key)
         try {
             cancelNotification(sbn.key)
         } catch (error: Throwable) {
+            sourceLifecycle.cancelRetention(sbn.key)
             forgetSelfDismissedSourceKey(sbn.key)
             Log.e(TAG, "Failed to auto-dismiss original notification: ${sbn.key}", error)
         }

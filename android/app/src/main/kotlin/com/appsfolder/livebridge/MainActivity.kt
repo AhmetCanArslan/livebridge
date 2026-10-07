@@ -55,6 +55,18 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        syncRecentsVisibility()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        syncRecentsVisibility()
+    }
+
+    private fun syncRecentsVisibility() {
+        val hidden = ConverterPrefs(applicationContext).getHideFromRecentsEnabled()
+        val manager = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        manager.appTasks.firstOrNull { it.taskInfo.taskId == taskId }?.setExcludeFromRecents(hidden)
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -124,6 +136,7 @@ class MainActivity : FlutterActivity() {
                 val imported = prefs.importSettingsBackupJson(raw)
                 if (imported) {
                     afterSettingsBackupImported(prefs)
+                    syncRecentsVisibility()
                 }
                 res.success(imported)
             }
@@ -256,6 +269,37 @@ class MainActivity : FlutterActivity() {
                     LiveParserDictionaryLoader.invalidate()
                 }
                 res.success(saved)
+            }
+
+            "getHideFromRecentsEnabled" -> res.success(prefs.getHideFromRecentsEnabled())
+            "setHideFromRecentsEnabled" -> {
+                prefs.setHideFromRecentsEnabled(call.argument<Boolean>("value") ?: false)
+                syncRecentsVisibility()
+                res.success(true)
+            }
+            "getSourceChannels" -> appsLoaderExecutor.execute {
+                try {
+                    val json = com.appsfolder.livebridge.liveupdate.SourceChannelStore.listJson(applicationContext, prefs)
+                    runOnUiThread { res.success(json) }
+                } catch (error: Exception) {
+                    runOnUiThread { res.error("channels_failed", "Unable to load channels", null) }
+                }
+            }
+            "setSourceChannelEnabled" -> {
+                val pkg = call.argument<String>("packageName").orEmpty()
+                val id = call.argument<String>("channelId").orEmpty()
+                if (pkg.isBlank() || id.isEmpty()) {
+                    res.error("invalid_channel", "Package and channel are required", null)
+                    return
+                }
+                val blocked = JSONObject(prefs.getBlockedSourceChannelsRaw())
+                val ids = blocked.optJSONArray(pkg) ?: org.json.JSONArray()
+                val values = (0 until ids.length()).map { ids.getString(it) }.toMutableSet()
+                if (call.argument<Boolean>("enabled") == true) values.remove(id) else values.add(id)
+                blocked.put(pkg, org.json.JSONArray(values.toList()))
+                prefs.setBlockedSourceChannelsRaw(blocked.toString())
+                LiveUpdateNotificationListenerService.invalidateSnapshotCache()
+                res.success(true)
             }
 
             "getPackageRules" -> res.success(prefs.getPackageRulesRaw())

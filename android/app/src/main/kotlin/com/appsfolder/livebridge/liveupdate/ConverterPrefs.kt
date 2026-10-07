@@ -10,6 +10,35 @@ class ConverterPrefs(context: Context) {
 
     internal fun runtimeSettingsSnapshot(): Map<String, *> = prefs.all
 
+    fun getHideFromRecentsEnabled(): Boolean = prefs.getBoolean("hide_from_recents_enabled", false)
+
+    fun setHideFromRecentsEnabled(value: Boolean) {
+        prefs.edit().putBoolean("hide_from_recents_enabled", value).apply()
+    }
+
+    fun getBlockedSourceChannelsRaw(): String = prefs.getString("blocked_source_channels", "{}") ?: "{}"
+
+    fun setBlockedSourceChannelsRaw(value: String) {
+        // Reject malformed backups/bridge calls rather than silently changing filtering.
+        val parsed = JSONObject(value)
+        val normalized = JSONObject()
+        for (pkg in parsed.keys()) {
+            require(pkg.isNotBlank()) { "Package name is required" }
+            val ids = parsed.getJSONArray(pkg)
+            val values = linkedSetOf<String>()
+            for (i in 0 until ids.length()) {
+                val id = ids.getString(i)
+                require(id.isNotEmpty()) { "Channel id is required" }
+                values.add(id)
+            }
+            if (values.isNotEmpty()) normalized.put(pkg, JSONArray(values.toList()))
+        }
+        prefs.edit().putString("blocked_source_channels", normalized.toString()).apply()
+    }
+
+    fun isSourceChannelAllowed(packageName: String, channelId: String?): Boolean =
+        SourceChannelRules.isAllowed(getBlockedSourceChannelsRaw(), packageName, channelId)
+
     fun getPackageRulesRaw(): String {
         val current = prefs.getString(KEY_PACKAGE_RULES, "") ?: ""
         if (current.isNotBlank()) {
@@ -795,6 +824,7 @@ class ConverterPrefs(context: Context) {
         return JSONObject()
             .put("converter_enabled", getConverterEnabled())
             .put("keep_alive_foreground_enabled", getKeepAliveForegroundEnabled())
+            .put("hide_from_recents_enabled", getHideFromRecentsEnabled())
             .put("spring_transitions_enabled", getSpringTransitionsEnabled())
             .put("prevent_mirror_dismiss_enabled", getPreventMirrorDismissEnabled())
             .put("hide_lockscreen_content_enabled", getHideLockscreenContentEnabled())
@@ -862,6 +892,7 @@ class ConverterPrefs(context: Context) {
 
     private fun buildRulesJson(): JSONObject {
         return JSONObject()
+            .put("blocked_source_channels", JSONObject(getBlockedSourceChannelsRaw()))
             .put("package_mode", getPackageMode())
             .put("package_rules", jsonArrayFromRules(getPackageRulesRaw()))
             .put("bypass_package_rules", jsonArrayFromRules(getBypassPackageRulesRaw()))
@@ -899,6 +930,7 @@ class ConverterPrefs(context: Context) {
     private fun applySettingsJson(settings: JSONObject) {
         bool(settings, "converter_enabled")?.let(::setConverterEnabled)
         bool(settings, "keep_alive_foreground_enabled")?.let(::setKeepAliveForegroundEnabled)
+        bool(settings, "hide_from_recents_enabled")?.let(::setHideFromRecentsEnabled)
         bool(settings, "spring_transitions_enabled")?.let(::setSpringTransitionsEnabled)
         bool(settings, "prevent_mirror_dismiss_enabled")?.let(::setPreventMirrorDismissEnabled)
         bool(settings, "hide_lockscreen_content_enabled")?.let(::setHideLockscreenContentEnabled)
@@ -959,6 +991,7 @@ class ConverterPrefs(context: Context) {
 
     private fun applyRulesJson(rules: JSONObject) {
         string(rules, "package_mode")?.let(::setPackageMode)
+        rules.optJSONObject("blocked_source_channels")?.let { setBlockedSourceChannelsRaw(it.toString()) }
         rulesValue(rules, "package_rules")?.let(::setPackageRulesRaw)
         rulesValue(rules, "bypass_package_rules")?.let(::setBypassPackageRulesRaw)
         string(rules, "notification_dedup_package_mode")

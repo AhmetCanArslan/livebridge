@@ -226,6 +226,8 @@ class _SettingsReportBugScreenState extends State<SettingsReportBugScreen> {
       'settings': <String, dynamic>{
         'converter_enabled': await converterEnabledFuture,
         'keep_alive_foreground_enabled': await keepAliveFuture,
+        'hide_from_recents_enabled':
+            await LiveBridgePlatform.getHideFromRecentsEnabled(),
         'conversion_log_enabled': await conversionLogEnabledFuture,
         'conversion_log_max_bytes': await conversionLogMaxBytesFuture,
         'network_speed_enabled': await networkSpeedEnabledFuture,
@@ -270,6 +272,9 @@ class _SettingsReportBugScreenState extends State<SettingsReportBugScreen> {
       },
       'rules': <String, dynamic>{
         'package_mode': await packageModeFuture,
+        'source_channels': jsonDecode(
+          await LiveBridgePlatform.getSourceChannels(),
+        ),
         'package_rules': _parseRulesText(await packageRulesFuture),
         'bypass_package_rules': _parseRulesText(await bypassPackageRulesFuture),
         'otp_package_mode': await otpPackageModeFuture,

@@ -8,15 +8,22 @@ void main() {
   const channel = MethodChannel('livebridge/platform');
   final binding = TestWidgetsFlutterBinding.ensureInitialized();
   bool vibrationEnabled = false;
+  bool hideRecents = false;
   final writes = <bool>[];
 
   setUp(() {
     vibrationEnabled = false;
+    hideRecents = false;
     writes.clear();
     binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
       call,
     ) async {
       switch (call.method) {
+        case 'getHideFromRecentsEnabled':
+          return hideRecents;
+        case 'setHideFromRecentsEnabled':
+          hideRecents = (call.arguments as Map)['value'] as bool;
+          return true;
         case 'getConvertedNotificationVibrationEnabled':
           return vibrationEnabled;
         case 'setConvertedNotificationVibrationEnabled':
@@ -70,4 +77,28 @@ void main() {
     expect(vibrationItem(tester).toggleValue, isTrue);
     expect(writes, isEmpty);
   });
+  testWidgets(
+    'hide from recent apps defaults off and saved state is restored',
+    (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: SettingsAppConfigScreen()),
+      );
+      await tester.pumpAndSettle();
+      LbListItemData item() => tester
+          .widgetList<LbListComponent>(find.byType(LbListComponent))
+          .expand((list) => list.items)
+          .singleWhere((item) => item.title == 'Hide from recent apps');
+      expect(item().toggleValue, isFalse);
+      item().onToggle!(true);
+      await tester.pumpAndSettle();
+      expect(hideRecents, isTrue);
+      expect(item().toggleValue, isTrue);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(
+        const MaterialApp(home: SettingsAppConfigScreen()),
+      );
+      await tester.pumpAndSettle();
+      expect(item().toggleValue, isTrue);
+    },
+  );
 }

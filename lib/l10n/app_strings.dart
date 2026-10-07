@@ -51,6 +51,91 @@ class AppStrings {
     return en;
   }
 
+  String get settingsSaveError => tr(
+    en: "Could not save the setting. Please try again.",
+    ru: "Не удалось сохранить настройку. Попробуйте ещё раз.",
+    tr: "Ayar kaydedilemedi. Lütfen tekrar deneyin.",
+    ptBr: "Não foi possível salvar a configuração. Tente novamente.",
+    zhHans: "无法保存设置，请重试。",
+    zhHant: "無法儲存設定，請重試。",
+    ko: "설정을 저장하지 못했습니다. 다시 시도하세요.",
+  );
+  String get hideFromRecentsTitle => tr(
+    en: "Hide from recent apps",
+    ru: "Скрывать из недавних приложений",
+    tr: "Son uygulamalardan gizle",
+    ptBr: "Ocultar dos apps recentes",
+    zhHans: "在最近使用的应用中隐藏",
+    zhHant: "在最近使用的應用程式中隱藏",
+    ko: "최근 앱에서 숨기기",
+  );
+  String get hideFromRecentsDescription => tr(
+    en: "Hide LiveBridge in the app switcher. This does not keep it running in the background.",
+    ru: "Скрывать LiveBridge в списке недавних приложений. Это не защищает от остановки в фоне.",
+    tr: "LiveBridge uygulamasını son uygulamalar listesinden gizler. Arka planda çalışmasını garanti etmez.",
+    ptBr:
+        "Oculta o LiveBridge nos apps recentes. Isso não garante sua execução em segundo plano.",
+    zhHans: "在最近使用的应用列表中隐藏 LiveBridge。这不能保证后台运行。",
+    zhHant: "在最近使用的應用程式列表中隱藏 LiveBridge。這不能保證背景執行。",
+    ko: "최근 앱 목록에서 LiveBridge를 숨깁니다. 백그라운드 실행을 보장하지는 않습니다.",
+  );
+  String get sourceChannelsTitle => tr(
+    en: "Source notification channels",
+    ru: "Каналы исходных уведомлений",
+    tr: "Kaynak bildirim kanalları",
+    ptBr: "Canais de notificação de origem",
+    zhHans: "源通知渠道",
+    zhHant: "來源通知管道",
+    ko: "원본 알림 채널",
+  );
+  String get sourceChannelsDescription => tr(
+    en: "Choose which channels LiveBridge can convert. Original notifications are unaffected.",
+    ru: "Выберите, какие каналы LiveBridge может конвертировать. Исходные уведомления сохраняются.",
+    tr: "LiveBridge uygulamasının dönüştürebileceği kanalları seçin. Orijinal bildirimler etkilenmez.",
+    ptBr:
+        "Escolha quais canais o LiveBridge pode converter. As notificações originais não são afetadas.",
+    zhHans: "选择 LiveBridge 可以转换的渠道。原始通知不受影响。",
+    zhHant: "選擇 LiveBridge 可以轉換的管道。原始通知不受影響。",
+    ko: "LiveBridge가 변환할 채널을 선택하세요. 원본 알림에는 영향을 주지 않습니다.",
+  );
+  String get sourceChannelsEmpty => tr(
+    en: "Channels appear after their apps post notifications while notification access is enabled. Refresh this list after receiving a notification.",
+    ru: "Каналы появятся после поступления уведомлений при включённом доступе к ним. Получите уведомление и обновите список.",
+    tr: "Bildirim erişimi açıkken uygulamalar bildirim gönderdiğinde kanallar görünür. Bildirim aldıktan sonra listeyi yenileyin.",
+    ptBr:
+        "Os canais aparecem quando os apps enviam notificações com o acesso ativado. Atualize a lista após receber uma notificação.",
+    zhHans: "启用通知访问权限后，应用发送通知时会出现渠道。收到通知后请刷新列表。",
+    zhHant: "啟用通知存取權後，應用程式傳送通知時會出現管道。收到通知後請重新整理列表。",
+    ko: "알림 접근 권한이 켜진 상태에서 앱이 알림을 보내면 채널이 표시됩니다. 알림을 받은 뒤 목록을 새로고침하세요.",
+  );
+  String get sourceChannelsSearch => tr(
+    en: "Search apps and channels",
+    ru: "Поиск приложений и каналов",
+    tr: "Uygulama ve kanal ara",
+    ptBr: "Buscar apps e canais",
+    zhHans: "搜索应用和渠道",
+    zhHant: "搜尋應用程式和管道",
+    ko: "앱 및 채널 검색",
+  );
+  String get sourceChannelsError => tr(
+    en: "Could not load or save channels. Please try again.",
+    ru: "Не удалось загрузить или сохранить каналы. Попробуйте ещё раз.",
+    tr: "Kanallar yüklenemedi veya kaydedilemedi. Lütfen tekrar deneyin.",
+    ptBr: "Não foi possível carregar ou salvar os canais. Tente novamente.",
+    zhHans: "无法加载或保存渠道，请重试。",
+    zhHant: "無法載入或儲存管道，請重試。",
+    ko: "채널을 불러오거나 저장하지 못했습니다. 다시 시도하세요.",
+  );
+  String get sourceChannelsRefresh => tr(
+    en: "Refresh",
+    ru: "Обновить",
+    tr: "Yenile",
+    ptBr: "Atualizar",
+    zhHans: "刷新",
+    zhHant: "重新整理",
+    ko: "새로고침",
+  );
+
   static AppStrings of(BuildContext context) {
     return AppStrings(locale: Localizations.localeOf(context));
   }

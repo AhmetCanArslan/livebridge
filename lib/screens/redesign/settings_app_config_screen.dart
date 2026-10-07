@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'settings_source_channels_screen.dart';
 import '../../l10n/app_locale_controller.dart';
 import '../../l10n/app_strings.dart';
 import '../../platform/livebridge_platform.dart';
@@ -30,6 +31,7 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
   static const int _logLengthMaxMb = 25;
   static const int _bytesPerMb = 1024 * 1024;
 
+  bool _hideFromRecents = false;
   bool _altBackgroundMode = false;
   bool _syncDnd = true;
   bool _preventDismissing = false;
@@ -52,6 +54,8 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
 
   Future<void> _loadState() async {
     try {
+      final hideFromRecentsFuture =
+          LiveBridgePlatform.getHideFromRecentsEnabled();
       final Future<bool> altBackgroundFuture =
           LiveBridgePlatform.getKeepAliveForegroundEnabled();
       final Future<bool> syncDndFuture = LiveBridgePlatform.getSyncDndEnabled();
@@ -72,6 +76,7 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
       final Future<String> appLanguageFuture =
           LiveBridgePlatform.getAppLanguageTag();
 
+      final hideFromRecents = await hideFromRecentsFuture;
       final bool altBackgroundMode = await altBackgroundFuture;
       final bool syncDnd = await syncDndFuture;
       final bool preventDismissing = await preventDismissingFuture;
@@ -96,6 +101,7 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
           .clamp(_logLengthMinMb, _logLengthMaxMb);
 
       setState(() {
+        _hideFromRecents = hideFromRecents;
         _altBackgroundMode = altBackgroundMode;
         _syncDnd = syncDnd;
         _preventDismissing = preventDismissing;
@@ -110,6 +116,19 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
       });
       LbHintsController.updateLocal(hintsDisabled);
     } catch (_) {}
+  }
+
+  Future<void> _setHideFromRecents(bool value) async {
+    try {
+      final saved = await LiveBridgePlatform.setHideFromRecentsEnabled(value);
+      if (saved && mounted) setState(() => _hideFromRecents = value);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppStrings.of(context).settingsSaveError)),
+        );
+      }
+    }
   }
 
   Future<void> _setAltBackgroundMode(bool value) async {
@@ -233,6 +252,23 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
     final double sliderMax = (_logLengthMaxMb - _logLengthMinMb).toDouble();
 
     final List<LbListItemData> primaryItems = <LbListItemData>[
+      LbListItemData(
+        title: strings.hideFromRecentsTitle,
+        description: strings.hideFromRecentsDescription,
+        showChevron: false,
+        toggleValue: _hideFromRecents,
+        onToggle: (value) => unawaited(_setHideFromRecents(value)),
+        onTap: () => unawaited(_setHideFromRecents(!_hideFromRecents)),
+      ),
+      LbListItemData(
+        title: strings.sourceChannelsTitle,
+        description: strings.sourceChannelsDescription,
+        onTap: () => Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const SettingsSourceChannelsScreen(),
+          ),
+        ),
+      ),
       LbListItemData(
         title: strings.appLanguageTitle,
         description: strings.appLanguageDescription,

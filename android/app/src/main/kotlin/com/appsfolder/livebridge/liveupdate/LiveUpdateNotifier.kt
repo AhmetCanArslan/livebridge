@@ -151,6 +151,7 @@ object LiveUpdateNotifier {
     private val userDismissedMirrorKeys = mutableSetOf<String>()
     private val programmaticMirrorCancelDeadlines = mutableMapOf<Int, Long>()
     private var callMirrorGenerationCounter = 0L
+    private var animationGenerationCounter = 0L
 
     @Synchronized
     fun ensureChannel(context: Context) {
@@ -295,6 +296,11 @@ object LiveUpdateNotifier {
             }
             staleAggregateIds.forEach { cancelMirroredNotification(manager, it) }
             cancelMirroredNotification(manager, mirrorIdForKey(sbn.key))
+            return notMirroredResult()
+        }
+        // An explicit channel exclusion takes precedence over package bypass and smart detection.
+        if (!prefs.isSourceChannelAllowed(sbn.packageName, sbn.notification.channelId)) {
+            cancelMirrorsForIgnoredSource(manager, sbn)
             return notMirroredResult()
         }
         if (prefs.getSyncDndEnabled() && isDoNotDisturbActive(context)) {
@@ -1284,20 +1290,36 @@ object LiveUpdateNotifier {
             ?.takeIf { it.isNotEmpty() }
     }
 
-    fun cancelMirrored(context: Context, sbn: StatusBarNotification) {
+    internal fun trackedSourceKeys(): Set<String> = synchronized(stateLock) {
+        val publishedKeys = mirrorKeysByNotificationId.values.toSet()
+        buildSet {
+            addAll(publishedKeys - aggregateStates.keys - otpAggregateStates.keys)
+            sbnToAggregateKey.forEach { (sourceKey, aggregateKey) ->
+                if (aggregateKey in publishedKeys) add(sourceKey)
+            }
+            sbnToOtpAggregateKey.forEach { (sourceKey, aggregateKey) ->
+                if (aggregateKey in publishedKeys) add(sourceKey)
+            }
+        }
+    }
+
+    fun cancelMirrored(context: Context, sbn: StatusBarNotification) =
+        cancelMirroredSourceKey(context, sbn.key)
+
+    internal fun cancelMirroredSourceKey(context: Context, sourceKey: String) {
         try {
             val manager = NotificationManagerCompat.from(context)
             val staleAggregateIds = synchronized(stateLock) {
-                val directMirrorId = mirrorIdForKey(sbn.key)
-                userDismissedMirrorKeys.remove(sbn.key)
-                callMirrorStates.remove(sbn.key)
+                val directMirrorId = mirrorIdForKey(sourceKey)
+                userDismissedMirrorKeys.remove(sourceKey)
+                callMirrorStates.remove(sourceKey)
                 mirrorKeysByNotificationId.remove(directMirrorId)
-                clearAggregateTrackingForSbnKeyLocked(sbn.key)
+                clearAggregateTrackingForSbnKeyLocked(sourceKey)
             }
             staleAggregateIds.forEach { cancelMirroredNotification(manager, it) }
-            cancelMirroredNotification(manager, mirrorIdForKey(sbn.key))
+            cancelMirroredNotification(manager, mirrorIdForKey(sourceKey))
         } catch (error: Throwable) {
-            Log.e(TAG, "Failed to cancel mirrored notification: ${sbn.key}", error)
+            Log.e(TAG, "Failed to cancel mirrored notification: ${sourceKey}", error)
         }
     }
 
@@ -1356,6 +1378,12 @@ object LiveUpdateNotifier {
             }
             userDismissedMirrorKeys.add(sourceKey)
             userDismissedMirrorKeys.addAll(aggregateKeys)
+            for (key in aggregateKeys + sourceKey) {
+                smartAnimationGenerations.remove(key)
+                smartAnimationStates.remove(key)
+                otpAnimationGenerations.remove(key)
+                callMirrorStates.remove(key)
+            }
             ids
         }
         notificationIds.forEach { notificationId ->
@@ -2014,6 +2042,11 @@ object LiveUpdateNotifier {
         callMirrorActive: Boolean = false,
         callChronometerStartWallClockMs: Long? = null
     ) {
+        // Also check at publication time: animations and queued work may predate a settings change.
+        if (!ConverterPrefs(context).isSourceChannelAllowed(sbn.packageName, sbn.notification.channelId)) {
+            cancelMirroredNotification(manager, notificationId)
+            return
+        }
         try {
             notifyMirroredNotification(
                 context = context,
@@ -3051,7 +3084,7 @@ object LiveUpdateNotifier {
         otpMatch: OtpMatch
     ) {
         val generation = synchronized(stateLock) {
-            val nextGeneration = (otpAnimationGenerations[otpMatch.aggregateKey] ?: 0L) + 1L
+            val nextGeneration = ++animationGenerationCounter
             otpAnimationGenerations[otpMatch.aggregateKey] = nextGeneration
             nextGeneration
         }
@@ -3234,7 +3267,7 @@ object LiveUpdateNotifier {
                 return@synchronized null
             }
 
-            val nextGeneration = (smartAnimationGenerations[aggregateKey] ?: 0L) + 1L
+            val nextGeneration = ++animationGenerationCounter
             smartAnimationGenerations[aggregateKey] = nextGeneration
             smartAnimationStates[aggregateKey] = SmartAnimationState(
                 sbn = sbn,
@@ -3342,6 +3375,7 @@ object LiveUpdateNotifier {
     }
 
     private fun isSmartAnimationGenerationCurrentLocked(aggregateKey: String, generation: Long): Boolean {
+        if (isUserDismissedMirrorLocked(aggregateKey)) return false
         val state = aggregateStates[aggregateKey] ?: return false
         if (state.activeSbnKeys.isEmpty()) {
             return false
@@ -4590,10 +4624,11 @@ object LiveUpdateNotifier {
         val prefs = ConverterPrefs(context)
         if (!prefs.getConverterEnabled() ||
             (prefs.getSyncDndEnabled() && isDoNotDisturbActive(context))) return
+        if (isUserDismissedMirror(mirrorKey)) return
         manager.notify(notificationId, notification)
         // Disabling can race with background construction; never leave a late mirror behind.
-        if (!prefs.getConverterEnabled()) {
-            manager.cancel(notificationId)
+        if (!prefs.getConverterEnabled() || isUserDismissedMirror(mirrorKey)) {
+            cancelMirroredNotification(manager, notificationId)
             return
         }
         synchronized(stateLock) {
@@ -4612,6 +4647,9 @@ object LiveUpdateNotifier {
             val mirrorKey = mirrorKeysByNotificationId.remove(notificationId)
             if (mirrorKey != null) {
                 callMirrorStates.remove(mirrorKey)
+                smartAnimationGenerations.remove(mirrorKey)
+                smartAnimationStates.remove(mirrorKey)
+                otpAnimationGenerations.remove(mirrorKey)
             }
         }
         manager.cancel(notificationId)
@@ -4688,6 +4726,11 @@ object LiveUpdateNotifier {
             if (state != null) {
                 state.activeSbnKeys.remove(sbnKey)
                 state.sourcesBySbnKey.remove(sbnKey)
+                // A queued frame must not continue to use a removed aggregate member.
+                if (smartAnimationStates[smartAggregateKey]?.sbn?.key == sbnKey) {
+                    smartAnimationGenerations.remove(smartAggregateKey)
+                    smartAnimationStates.remove(smartAggregateKey)
+                }
                 if (state.activeSbnKeys.isEmpty()) {
                     aggregateStates.remove(smartAggregateKey)
                     smartAnimationGenerations.remove(smartAggregateKey)
@@ -4744,6 +4787,8 @@ object LiveUpdateNotifier {
         val sourceKey = sbnToOtpSourceKey.remove(sbnKey)
         val otpAggregateKey = sbnToOtpAggregateKey.remove(sbnKey)
         if (otpAggregateKey != null) {
+            // Delayed OTP frames capture the removed source, even if other members remain.
+            otpAnimationGenerations.remove(otpAggregateKey)
             val state = otpAggregateStates[otpAggregateKey]
             if (state != null) {
                 state.activeSbnKeys.remove(sbnKey)
