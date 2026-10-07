@@ -32,6 +32,9 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
   static const int _logLengthMaxMb = 25;
   static const int _bytesPerMb = 1024 * 1024;
 
+  bool _wearOsAvailable = false;
+  bool _wearOsEnabled = false;
+  bool _wearOsSaving = false;
   bool _hideFromRecents = false;
   bool _altBackgroundMode = false;
   bool _syncDnd = true;
@@ -55,6 +58,10 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
 
   Future<void> _loadState() async {
     try {
+      final wearOsAvailableFuture =
+          LiveBridgePlatform.isWearOsLiveUpdatesAvailable();
+      final wearOsEnabledFuture =
+          LiveBridgePlatform.getWearOsLiveUpdatesEnabled();
       final hideFromRecentsFuture =
           LiveBridgePlatform.getHideFromRecentsEnabled();
       final Future<bool> altBackgroundFuture =
@@ -77,6 +84,8 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
       final Future<String> appLanguageFuture =
           LiveBridgePlatform.getAppLanguageTag();
 
+      final wearOsAvailable = await wearOsAvailableFuture;
+      final wearOsEnabled = await wearOsEnabledFuture;
       final hideFromRecents = await hideFromRecentsFuture;
       final bool altBackgroundMode = await altBackgroundFuture;
       final bool syncDnd = await syncDndFuture;
@@ -102,6 +111,8 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
           .clamp(_logLengthMinMb, _logLengthMaxMb);
 
       setState(() {
+        _wearOsAvailable = wearOsAvailable;
+        _wearOsEnabled = wearOsAvailable && wearOsEnabled;
         _hideFromRecents = hideFromRecents;
         _altBackgroundMode = altBackgroundMode;
         _syncDnd = syncDnd;
@@ -117,6 +128,24 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
       });
       LbHintsController.updateLocal(hintsDisabled);
     } catch (_) {}
+  }
+
+  Future<void> _setWearOsEnabled(bool value) async {
+    if (!_wearOsAvailable || _wearOsSaving || value == _wearOsEnabled) return;
+    setState(() => _wearOsSaving = true);
+    try {
+      final saved = await LiveBridgePlatform.setWearOsLiveUpdatesEnabled(value);
+      if (!saved) throw StateError('Setting not saved');
+      if (mounted) setState(() => _wearOsEnabled = value);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppStrings.of(context).settingsSaveError)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _wearOsSaving = false);
+    }
   }
 
   Future<void> _setHideFromRecents(bool value) async {
@@ -287,6 +316,22 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
           unawaited(LiveBridgeHaptics.openSurface());
           unawaited(_openAppLanguageSheet());
         },
+      ),
+      LbListItemData(
+        title: strings.wearOsLiveUpdatesTitle,
+        description: strings.wearOsLiveUpdatesDescription,
+        subtitle: _wearOsAvailable
+            ? null
+            : strings.wearOsLiveUpdatesUnavailable,
+        showChevron: false,
+        enabled: _wearOsAvailable && !_wearOsSaving,
+        toggleValue: _wearOsEnabled,
+        onToggle: _wearOsAvailable
+            ? (value) => unawaited(_setWearOsEnabled(value))
+            : null,
+        onTap: _wearOsAvailable
+            ? () => unawaited(_setWearOsEnabled(!_wearOsEnabled))
+            : null,
       ),
       LbListItemData(
         title: strings.keepAliveForegroundTitle,

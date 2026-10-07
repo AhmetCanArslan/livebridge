@@ -3068,4 +3068,42 @@ class AppStrings {
     zhHant: '為支援的轉換加入流暢的島內文字動畫',
     ko: '지원되는 변환에서 자연스러운 아일랜드 텍스트 애니메이션을 추가합니다.',
   );
+  String get wearOsLiveUpdatesTitle => tr(
+    en: "Live Updates on Wear OS",
+    ru: "Live Updates на Wear OS",
+    es: "Live Updates en Wear OS",
+    de: "Live Updates auf Wear OS",
+    tr: "Wear OS’te Live Updates",
+    ptBr: "Live Updates no Wear OS",
+    zhHans: "Wear OS 实时更新",
+    zhHant: "Wear OS 即時更新",
+    ko: "Wear OS 실시간 업데이트",
+  );
+
+  String get wearOsLiveUpdatesUnavailable => tr(
+    en: "Requires Android 17",
+    ru: "Требуется Android 17",
+    es: "Requiere Android 17",
+    de: "Erfordert Android 17",
+    tr: "Android 17 gerekir",
+    ptBr: "Requer Android 17",
+    zhHans: "需要 Android 17",
+    zhHant: "需要 Android 17",
+    ko: "Android 17 필요",
+  );
+
+  String get wearOsLiveUpdatesDescription => tr(
+    en: "Allows Android to forward converted Live Updates to your watch. Requires Android 17, Wear OS 7 and support from the watch manufacturer. Original app notifications may also appear on the watch.",
+    ru: "Разрешает Android пересылать преобразованные Live Updates на часы. Нужны Android 17, Wear OS 7 и поддержка производителя часов. На часах также могут появляться исходные уведомления приложений.",
+    es: "Permite a Android enviar Live Updates convertidas al reloj. Requiere Android 17, Wear OS 7 y soporte del fabricante del reloj. También pueden aparecer las notificaciones originales.",
+    de: "Erlaubt Android, umgewandelte Live Updates an die Uhr weiterzuleiten. Erfordert Android 17, Wear OS 7 und Unterstützung des Uhrenherstellers. Die ursprünglichen Benachrichtigungen können ebenfalls auf der Uhr erscheinen.",
+    tr: "Android’in dönüştürülen Live Updates bildirimlerini saate iletmesine izin verir. Android 17, Wear OS 7 ve saat üreticisinin desteği gerekir. Asıl uygulama bildirimleri de saatte görünebilir.",
+    ptBr:
+        "Permite que o Android envie Live Updates convertidos ao relógio. Requer Android 17, Wear OS 7 e suporte do fabricante do relógio. As notificações originais também podem aparecer no relógio.",
+    zhHans:
+        "允许 Android 将转换后的实时更新转发到手表。需要 Android 17、Wear OS 7 和手表厂商支持。原应用通知也可能显示在手表上。",
+    zhHant:
+        "允許 Android 將轉換後的即時更新轉送至手錶。需要 Android 17、Wear OS 7 及手錶廠商支援。原應用程式通知也可能顯示在手錶上。",
+    ko: "Android가 변환된 실시간 업데이트를 시계로 전달하도록 허용합니다. Android 17, Wear OS 7 및 시계 제조사의 지원이 필요합니다. 원래 앱 알림도 시계에 표시될 수 있습니다.",
+  );
 }

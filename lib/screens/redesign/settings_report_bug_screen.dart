@@ -231,6 +231,10 @@ class _SettingsReportBugScreenState extends State<SettingsReportBugScreen> {
         'conversion_log_enabled': await conversionLogEnabledFuture,
         'conversion_log_max_bytes': await conversionLogMaxBytesFuture,
         'network_speed_enabled': await networkSpeedEnabledFuture,
+        'wear_os_live_updates_available':
+            await LiveBridgePlatform.isWearOsLiveUpdatesAvailable(),
+        'wear_os_live_updates_enabled':
+            await LiveBridgePlatform.getWearOsLiveUpdatesEnabled(),
         'network_speed_hide_when_locked':
             await LiveBridgePlatform.getNetworkSpeedHideWhenLocked(),
         'network_speed_min_threshold_bytes_per_second':

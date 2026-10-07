@@ -10,6 +10,8 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.appsfolder.livebridge.MainActivity
 import com.appsfolder.livebridge.R
+import com.appsfolder.livebridge.liveupdate.ConverterPrefs
+import com.appsfolder.livebridge.liveupdate.WearOsLiveUpdatesPolicy
 import com.appsfolder.livebridge.liveupdate.NativeAppStrings
 
 class NetworkSpeedNotificationBuilder(
@@ -83,6 +85,9 @@ class NetworkSpeedNotificationBuilder(
             .setContentText(detailText)
             .setContentIntent(contentIntent)
             .setOngoing(true)
+            .setLocalOnly(WearOsLiveUpdatesPolicy.isLocalOnly(
+                Build.VERSION.SDK_INT, ConverterPrefs(context).getWearOsLiveUpdatesEnabled()
+            ))
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)

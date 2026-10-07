@@ -2068,7 +2068,40 @@ object LiveUpdateNotifier {
         if (customDisplayText != null) {
             builder.setShortCriticalText(limitIslandText(customDisplayText, aospCuttingEnabled, aospCuttingLength))
         }
+        builder.setLocalOnly(WearOsLiveUpdatesPolicy.isLocalOnly(
+            Build.VERSION.SDK_INT, runtimePrefs.getWearOsLiveUpdatesEnabled()
+        ))
         return builder.build()
+    }
+
+    internal fun refreshWearOsBridging(context: Context) {
+        NotificationProcessing.handler.post {
+            val prefs = ConverterPrefs(context)
+            if (!prefs.getConverterEnabled()) return@post
+            val localOnly = WearOsLiveUpdatesPolicy.isLocalOnly(
+                Build.VERSION.SDK_INT, prefs.getWearOsLiveUpdatesEnabled()
+            )
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            // Update existing mirrors too, including those whose originals were removed.
+            for (sbn in manager.activeNotifications) {
+                if (!MirrorNotificationChannel.entries.any { it.matches(sbn.notification.channelId) }) continue
+                val notification = sbn.notification
+                if ((notification.flags and Notification.FLAG_LOCAL_ONLY != 0) == localOnly) continue
+                applyWearOsBridging(notification, prefs)
+                notification.flags = notification.flags or Notification.FLAG_ONLY_ALERT_ONCE
+                manager.notify(sbn.tag, sbn.id, notification)
+            }
+        }
+    }
+
+    private fun applyWearOsBridging(notification: Notification, prefs: ConverterPrefs) {
+        notification.flags = if (WearOsLiveUpdatesPolicy.isLocalOnly(
+                Build.VERSION.SDK_INT, prefs.getWearOsLiveUpdatesEnabled()
+            )) {
+            notification.flags or Notification.FLAG_LOCAL_ONLY
+        } else {
+            notification.flags and Notification.FLAG_LOCAL_ONLY.inv()
+        }
     }
 
     private fun notifyWithPromotionFallback(
@@ -4676,6 +4709,7 @@ object LiveUpdateNotifier {
         if (!prefs.getConverterEnabled() ||
             (prefs.getSyncDndEnabled() && isDoNotDisturbActive(context))) return
         if (isUserDismissedMirror(mirrorKey)) return
+        applyWearOsBridging(notification, prefs)
         manager.notify(notificationId, notification)
         // Disabling can race with background construction; never leave a late mirror behind.
         if (!prefs.getConverterEnabled() || isUserDismissedMirror(mirrorKey)) {

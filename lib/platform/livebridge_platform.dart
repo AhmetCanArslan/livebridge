@@ -48,6 +48,13 @@ class LiveBridgePlatform {
     return PromotedNotificationAccess.fromMap(value);
   }
 
+  static Future<bool> isWearOsLiveUpdatesAvailable() =>
+      _askBool('isWearOsLiveUpdatesAvailable');
+  static Future<bool> getWearOsLiveUpdatesEnabled() =>
+      _askBool('getWearOsLiveUpdatesEnabled');
+  static Future<bool> setWearOsLiveUpdatesEnabled(bool value) =>
+      _askBool('setWearOsLiveUpdatesEnabled', {'value': value});
+
   static Future<bool> getNetworkSpeedHideWhenLocked() =>
       _askBool('getNetworkSpeedHideWhenLocked');
   static Future<bool> setNetworkSpeedHideWhenLocked(bool value) =>

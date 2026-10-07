@@ -249,6 +249,13 @@ class ConverterPrefs(context: Context) {
         prefs.edit().putBoolean(KEY_NETWORK_SPEED_ENABLED, value).apply()
     }
 
+    fun getWearOsLiveUpdatesEnabled(): Boolean =
+        prefs.getBoolean(KEY_WEAR_OS_LIVE_UPDATES_ENABLED, false)
+
+    fun setWearOsLiveUpdatesEnabled(value: Boolean) {
+        prefs.edit().putBoolean(KEY_WEAR_OS_LIVE_UPDATES_ENABLED, value).apply()
+    }
+
     fun getNetworkSpeedHideWhenLocked(): Boolean =
         prefs.getBoolean(KEY_NETWORK_SPEED_HIDE_WHEN_LOCKED, false)
 
@@ -880,6 +887,7 @@ class ConverterPrefs(context: Context) {
             .put("bug_report_auto_copy_enabled", getBugReportAutoCopyEnabled())
             .put("app_language", getAppLanguageTag())
             .put("network_speed_enabled", getNetworkSpeedEnabled())
+            .put("wear_os_live_updates_enabled", getWearOsLiveUpdatesEnabled())
             .put("network_speed_hide_when_locked", getNetworkSpeedHideWhenLocked())
             .put(
                 "network_speed_min_threshold_bytes_per_second",
@@ -992,6 +1000,7 @@ class ConverterPrefs(context: Context) {
         string(settings, "app_language")?.let(::setAppLanguageTag)
         string(settings, "app_language_tag")?.let(::setAppLanguageTag)
         bool(settings, "network_speed_enabled")?.let(::setNetworkSpeedEnabled)
+        bool(settings, "wear_os_live_updates_enabled")?.let(::setWearOsLiveUpdatesEnabled)
         bool(settings, "network_speed_hide_when_locked")?.let(::setNetworkSpeedHideWhenLocked)
         long(settings, "network_speed_min_threshold_bytes_per_second")
             ?.let(::setNetworkSpeedMinThresholdBytesPerSecond)
@@ -1217,6 +1226,7 @@ class ConverterPrefs(context: Context) {
         private const val KEY_CONVERTER_ENABLED = "converter_enabled"
         private const val KEY_KEEP_ALIVE_FOREGROUND_ENABLED = "keep_alive_foreground_enabled"
         private const val KEY_NETWORK_SPEED_ENABLED = "network_speed_enabled"
+        private const val KEY_WEAR_OS_LIVE_UPDATES_ENABLED = "wear_os_live_updates_enabled"
         private const val KEY_NETWORK_SPEED_HIDE_WHEN_LOCKED = "network_speed_hide_when_locked"
         private const val KEY_NETWORK_SPEED_MIN_THRESHOLD_BYTES_PER_SECOND =
             "network_speed_min_threshold_bytes_per_second"

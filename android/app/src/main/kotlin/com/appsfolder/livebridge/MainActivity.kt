@@ -33,6 +33,7 @@ import com.appsfolder.livebridge.liveupdate.AppPresentationOverridesCodec
 import com.appsfolder.livebridge.liveupdate.AppPresentationOverridesLoader
 import com.appsfolder.livebridge.liveupdate.ConverterPrefs
 import com.appsfolder.livebridge.liveupdate.ConversionLogStore
+import com.appsfolder.livebridge.liveupdate.WearOsLiveUpdatesPolicy
 import com.appsfolder.livebridge.liveupdate.PromotedAccessPolicy
 import com.appsfolder.livebridge.liveupdate.NativeAppStrings
 import com.appsfolder.livebridge.liveupdate.DeviceProps
@@ -491,6 +492,23 @@ class MainActivity : FlutterActivity() {
                 res.success(true)
             }
 
+            "isWearOsLiveUpdatesAvailable" -> res.success(WearOsLiveUpdatesPolicy.isAvailable(Build.VERSION.SDK_INT))
+            "getWearOsLiveUpdatesEnabled" -> res.success(
+                !WearOsLiveUpdatesPolicy.isLocalOnly(Build.VERSION.SDK_INT, prefs.getWearOsLiveUpdatesEnabled())
+            )
+            "setWearOsLiveUpdatesEnabled" -> {
+                val value = call.argument<Boolean>("value") ?: false
+                if (value && !WearOsLiveUpdatesPolicy.isAvailable(Build.VERSION.SDK_INT)) {
+                    res.success(false)
+                    return
+                }
+                prefs.setWearOsLiveUpdatesEnabled(value)
+                LiveUpdateNotifier.refreshWearOsBridging(applicationContext)
+                LiveUpdateNotificationListenerService.invalidateSnapshotCache()
+                syncNetworkSpeedForegroundService(prefs)
+                res.success(true)
+            }
+
             "getNetworkSpeedHideWhenLocked" -> res.success(prefs.getNetworkSpeedHideWhenLocked())
             "setNetworkSpeedHideWhenLocked" -> {
                 prefs.setNetworkSpeedHideWhenLocked(call.argument<Boolean>("value") ?: false)
@@ -818,6 +836,7 @@ class MainActivity : FlutterActivity() {
     }
 
     private fun afterSettingsBackupImported(prefs: ConverterPrefs) {
+        LiveUpdateNotifier.refreshWearOsBridging(applicationContext)
         AppPresentationOverridesLoader.invalidate()
         LiveParserDictionaryLoader.invalidate()
         conversionLogExecutor.execute { ConversionLogStore.trimToPrefs(applicationContext, prefs) }
