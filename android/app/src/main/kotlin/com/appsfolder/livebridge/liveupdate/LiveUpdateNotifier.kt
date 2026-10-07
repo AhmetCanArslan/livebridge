@@ -149,6 +149,7 @@ object LiveUpdateNotifier {
     private val callMirrorStates = mutableMapOf<String, CallMirrorState>()
     private val mirrorKeysByNotificationId = mutableMapOf<Int, String>()
     private val userDismissedMirrorKeys = mutableSetOf<String>()
+    private val sourceContentRevisions = NotificationRevisionPolicy()
     private val programmaticMirrorCancelDeadlines = mutableMapOf<Int, Long>()
     private var callMirrorGenerationCounter = 0L
     private var animationGenerationCounter = 0L
@@ -258,6 +259,7 @@ object LiveUpdateNotifier {
             callMirrorStates.clear()
             mirrorKeysByNotificationId.clear()
             userDismissedMirrorKeys.clear()
+            sourceContentRevisions.clear()
             programmaticMirrorCancelDeadlines.clear()
         }
     }
@@ -302,6 +304,19 @@ object LiveUpdateNotifier {
         if (!prefs.isSourceChannelAllowed(sbn.packageName, sbn.notification.channelId)) {
             cancelMirrorsForIgnoredSource(manager, sbn)
             return notMirroredResult()
+        }
+        val sourceText = sourceTextForFiltering(sbn.notification)
+        if (!prefs.isNotificationTextAllowed(sbn.packageName, sourceText)) {
+            cancelMirrorsForIgnoredSource(manager, sbn)
+            return notMirroredResult()
+        }
+        synchronized(stateLock) {
+            val revivedKeys = sourceContentRevisions.observe(sbn.key, sourceText)
+            if (revivedKeys.isNotEmpty()) {
+                userDismissedMirrorKeys.removeAll(revivedKeys)
+                sbnToAggregateKey[sbn.key]?.let(userDismissedMirrorKeys::remove)
+                sbnToOtpAggregateKey[sbn.key]?.let(userDismissedMirrorKeys::remove)
+            }
         }
         if (prefs.getSyncDndEnabled() && isDoNotDisturbActive(context)) {
             val staleAggregateIds = synchronized(stateLock) {
@@ -871,7 +886,7 @@ object LiveUpdateNotifier {
                             initialToken = smartStatusText
                         )
                     }
-                    mirroredResult(dedupKind = dedupKind)
+                    mirroredResult(dedupKind = dedupKind, retainOriginal = smartRuleId == "external_device")
                 }
 
                 hasNativeProgress -> {
@@ -919,6 +934,20 @@ object LiveUpdateNotifier {
             Log.e(TAG, "Failed to mirror notification: ${sbn.key}", error)
             notMirroredResult(retryNeeded = true)
         }
+    }
+
+    private fun sourceTextForFiltering(notification: Notification): String {
+        val extras = notification.extras
+        return buildList {
+            for (key in listOf(Notification.EXTRA_TITLE, Notification.EXTRA_TITLE_BIG, Notification.EXTRA_TEXT,
+                Notification.EXTRA_BIG_TEXT, Notification.EXTRA_SUB_TEXT, Notification.EXTRA_SUMMARY_TEXT)) {
+                extras.getCharSequence(key)?.toString()?.let(::add)
+            }
+            extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)?.forEach { add(it.toString()) }
+            Notification.MessagingStyle.Message.getMessagesFromBundleArray(
+                extras.getParcelableArray(Notification.EXTRA_MESSAGES)
+            ).forEach { it.text?.toString()?.let(::add) }
+        }.distinct().joinToString("\n")
     }
 
     private fun isDoNotDisturbActive(context: Context): Boolean {
@@ -1312,6 +1341,7 @@ object LiveUpdateNotifier {
             val staleAggregateIds = synchronized(stateLock) {
                 val directMirrorId = mirrorIdForKey(sourceKey)
                 userDismissedMirrorKeys.remove(sourceKey)
+                userDismissedMirrorKeys.removeAll(sourceContentRevisions.remove(sourceKey))
                 callMirrorStates.remove(sourceKey)
                 mirrorKeysByNotificationId.remove(directMirrorId)
                 clearAggregateTrackingForSbnKeyLocked(sourceKey)
@@ -1357,6 +1387,9 @@ object LiveUpdateNotifier {
 
             val mirrorKey = mirrorKeysByNotificationId.remove(sbn.id) ?: return
             userDismissedMirrorKeys.add(mirrorKey)
+            val sourceKeys = aggregateStates[mirrorKey]?.activeSbnKeys
+                ?: otpAggregateStates[mirrorKey]?.activeSbnKeys ?: setOf(mirrorKey)
+            sourceKeys.forEach { sourceContentRevisions.dismissed(it, setOf(mirrorKey)) }
             callMirrorStates.remove(mirrorKey)
             smartAnimationGenerations.remove(mirrorKey)
             smartAnimationStates.remove(mirrorKey)
@@ -1378,6 +1411,7 @@ object LiveUpdateNotifier {
             }
             userDismissedMirrorKeys.add(sourceKey)
             userDismissedMirrorKeys.addAll(aggregateKeys)
+            sourceContentRevisions.dismissed(sourceKey, aggregateKeys + sourceKey)
             for (key in aggregateKeys + sourceKey) {
                 smartAnimationGenerations.remove(key)
                 smartAnimationStates.remove(key)
@@ -1395,10 +1429,11 @@ object LiveUpdateNotifier {
         return MirrorResult(mirrored = false, retryNeeded = retryNeeded)
     }
 
-    private fun mirroredResult(dedupKind: MirrorDedupKind = MirrorDedupKind.NONE): MirrorResult {
+    private fun mirroredResult(dedupKind: MirrorDedupKind = MirrorDedupKind.NONE, retainOriginal: Boolean = false): MirrorResult {
         return MirrorResult(
             mirrored = true,
-            dedupKind = dedupKind
+            dedupKind = dedupKind,
+            retainOriginal = retainOriginal
         )
     }
 
@@ -1751,7 +1786,9 @@ object LiveUpdateNotifier {
         } else {
             text
         }
-        val displayTitle = if (preferMediaControls) {
+        val customDisplayText = if (preferMediaControls || callMirrorActive || otpOverride != null) null else
+            renderNotificationTemplate(NotificationTextFilters.template(runtimePrefs.getNotificationTextFiltersRaw(), sbn.packageName), title, text, appName)
+        val displayTitle = if (customDisplayText != null) customDisplayText else if (preferMediaControls) {
             title.takeIfMeaningfulMediaPlaybackText()
                 ?: configuredDisplayTitle.takeIfMeaningfulMediaPlaybackText()
                 ?: appName
@@ -2016,6 +2053,9 @@ object LiveUpdateNotifier {
             )
         }
 
+        if (customDisplayText != null) {
+            builder.setShortCriticalText(limitIslandText(customDisplayText, aospCuttingEnabled, aospCuttingLength))
+        }
         return builder.build()
     }
 
@@ -2043,7 +2083,9 @@ object LiveUpdateNotifier {
         callChronometerStartWallClockMs: Long? = null
     ) {
         // Also check at publication time: animations and queued work may predate a settings change.
-        if (!ConverterPrefs(context).isSourceChannelAllowed(sbn.packageName, sbn.notification.channelId)) {
+        val publicationPrefs = ConverterPrefs(context)
+        if (!publicationPrefs.isSourceChannelAllowed(sbn.packageName, sbn.notification.channelId) ||
+            !publicationPrefs.isNotificationTextAllowed(sbn.packageName, sourceTextForFiltering(sbn.notification))) {
             cancelMirroredNotification(manager, notificationId)
             return
         }
@@ -4881,7 +4923,8 @@ object LiveUpdateNotifier {
     data class MirrorResult(
         val mirrored: Boolean,
         val dedupKind: MirrorDedupKind = MirrorDedupKind.NONE,
-        val retryNeeded: Boolean = false
+        val retryNeeded: Boolean = false,
+        val retainOriginal: Boolean = false
     )
 
     enum class MirrorDedupKind {

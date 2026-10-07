@@ -51,6 +51,80 @@ class AppStrings {
     return en;
   }
 
+  String get textFiltersTitle =>
+      tr(en: 'Notification text filters', ru: 'Фильтры по тексту уведомлений');
+  String get textFiltersDescription => tr(
+    en: 'Choose notifications by words in their title or text. Excluded notifications keep their originals.',
+    ru: 'Выбирайте уведомления по словам в заголовке или тексте. Оригиналы исключённых уведомлений сохраняются.',
+  );
+  String get filterTemplateTitle => tr(
+    en: 'Custom island text (optional)',
+    ru: 'Свой текст на островке (необязательно)',
+  );
+  String get filterTemplateHelp => tr(
+    en: 'Use {title}, {text}, and {app}, or write your own text. Empty app templates use the global template. Call controls, media players and OTP codes keep their original presentation.',
+    ru: 'Используйте {title}, {text} и {app} или напишите свой текст. Пустой шаблон приложения использует общий шаблон. Звонки, плеер и OTP сохраняют своё отображение.',
+  );
+  String get filterAllApps => tr(en: 'All apps', ru: 'Все приложения');
+  String get filterAllowWords => tr(
+    en: 'Must contain (one word or phrase per line)',
+    ru: 'Должно содержать (слово или фраза на строку)',
+  );
+  String get filterDenyWords => tr(
+    en: 'Do not convert if it contains',
+    ru: 'Не конвертировать, если содержит',
+  );
+  String get filterMatchAll => tr(
+    en: 'Require all allowed phrases',
+    ru: 'Требовать все разрешённые фразы',
+  );
+  String get filterHelp => tr(
+    en: 'Matching ignores case. Exclusions win. Leave the allowed list empty to allow any text. Global and app filters both apply, including always-convert apps.',
+    ru: 'Регистр не учитывается. Запрет имеет приоритет. Пустой разрешённый список пропускает любой текст. Общий фильтр и фильтр приложения действуют вместе, в том числе для «всегда конвертировать».',
+  );
+  String get wordEditorHelp => tr(
+    en: 'Add recognition words and app hints, one per line. Built-in dictionaries and imported rules are kept. Remove your additions here to return to built-in recognition.',
+    ru: 'Добавляйте слова распознавания и подсказки приложений, по одному на строку. Встроенные словари и импортированные правила сохраняются. Удалите добавленные слова, чтобы вернуть исходное распознавание.',
+  );
+  String get editorClear =>
+      tr(en: 'Clear additions', ru: 'Очистить добавления');
+  String get editorLimit => tr(
+    en: 'Use at most 100 entries per field, up to 200 characters each.',
+    ru: 'Не более 100 строк в поле, до 200 символов в каждой.',
+  );
+  String dictionaryWordField(String key) {
+    const labels = <String, List<String>>{
+      'otp_strong_triggers': [
+        'Verification code words',
+        'Слова для кодов подтверждения',
+      ],
+      'progress_words': ['Progress words', 'Слова прогресса'],
+      'weather_words': ['Weather words', 'Слова о погоде'],
+      'weather_package_hints': [
+        'Weather app hints',
+        'Подсказки погодных приложений',
+      ],
+      'known_navigation_packages': [
+        'Navigation app packages',
+        'Пакеты навигационных приложений',
+      ],
+      'navigation_package_markers': [
+        'Navigation app hints',
+        'Подсказки навигационных приложений',
+      ],
+      'vpn_package_markers': ['VPN app hints', 'Подсказки VPN-приложений'],
+      'order_context_hints': ['Order words', 'Слова о заказах'],
+      'food_words': ['Food delivery words', 'Слова о доставке еды'],
+      'food_packages': [
+        'Food delivery app hints',
+        'Подсказки приложений доставки еды',
+      ],
+      'taxi_words': ['Taxi words', 'Слова о такси'],
+      'taxi_packages': ['Taxi app hints', 'Подсказки приложений такси'],
+    };
+    return labels[key]?[isRu ? 1 : 0] ?? key;
+  }
+
   String get settingsSaveError => tr(
     en: "Could not save the setting. Please try again.",
     ru: "Не удалось сохранить настройку. Попробуйте ещё раз.",

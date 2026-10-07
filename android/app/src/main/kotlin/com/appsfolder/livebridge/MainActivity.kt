@@ -61,6 +61,11 @@ class MainActivity : FlutterActivity() {
     override fun onResume() {
         super.onResume()
         syncRecentsVisibility()
+        val prefs = ConverterPrefs(applicationContext)
+        if (prefs.getConverterEnabled() && !LiveUpdateNotificationListenerService.isConnected()) {
+            LiveUpdateNotificationListenerService.requestRebindIfEnabled(applicationContext, "app_resumed")
+        }
+        LiveUpdateNotificationListenerService.invalidateSnapshotCache()
     }
 
     private fun syncRecentsVisibility() {
@@ -233,12 +238,14 @@ class MainActivity : FlutterActivity() {
                 }
                 prefs.setCustomParserDictionaryRaw(raw)
                 LiveParserDictionaryLoader.invalidate()
+                LiveUpdateNotificationListenerService.invalidateSnapshotCache()
                 res.success(true)
             }
 
             "clearCustomParserDictionary" -> {
                 prefs.clearCustomParserDictionary()
                 LiveParserDictionaryLoader.invalidate()
+                LiveUpdateNotificationListenerService.invalidateSnapshotCache()
                 res.success(true)
             }
 
@@ -276,6 +283,27 @@ class MainActivity : FlutterActivity() {
                 prefs.setHideFromRecentsEnabled(call.argument<Boolean>("value") ?: false)
                 syncRecentsVisibility()
                 res.success(true)
+            }
+            "getNotificationTextFilters" -> res.success(prefs.getNotificationTextFiltersRaw())
+            "setNotificationTextFilters" -> {
+                try {
+                    prefs.setNotificationTextFiltersRaw(call.argument<String>("value") ?: "{}")
+                    LiveUpdateNotificationListenerService.invalidateSnapshotCache()
+                    res.success(true)
+                } catch (error: Exception) {
+                    res.error("invalid_filters", "Invalid notification text filters", null)
+                }
+            }
+            "getDictionaryWordAdditions" -> res.success(prefs.getDictionaryWordAdditionsRaw())
+            "setDictionaryWordAdditions" -> {
+                try {
+                    prefs.setDictionaryWordAdditionsRaw(call.argument<String>("value") ?: "{}")
+                    LiveParserDictionaryLoader.invalidate()
+                    LiveUpdateNotificationListenerService.invalidateSnapshotCache()
+                    res.success(true)
+                } catch (error: Exception) {
+                    res.error("invalid_words", "Invalid dictionary words", null)
+                }
             }
             "getSourceChannels" -> appsLoaderExecutor.execute {
                 try {

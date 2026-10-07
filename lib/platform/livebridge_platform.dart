@@ -52,6 +52,15 @@ class LiveBridgePlatform {
   static Future<bool> importLiveBridgeSettingsBackup(String value) =>
       _askBool('importLiveBridgeSettingsBackup', {'value': value});
 
+  static Future<String> getNotificationTextFilters() =>
+      _askStr('getNotificationTextFilters');
+  static Future<bool> setNotificationTextFilters(String value) =>
+      _askBool('setNotificationTextFilters', {'value': value});
+  static Future<String> getDictionaryWordAdditions() =>
+      _askStr('getDictionaryWordAdditions');
+  static Future<bool> setDictionaryWordAdditions(String value) =>
+      _askBool('setDictionaryWordAdditions', {'value': value});
+
   static Future<bool> getHideFromRecentsEnabled() =>
       _askBool('getHideFromRecentsEnabled');
   static Future<bool> setHideFromRecentsEnabled(bool value) =>

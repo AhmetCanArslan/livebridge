@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'settings_source_channels_screen.dart';
+import 'settings_text_filters_screen.dart';
 import '../../l10n/app_locale_controller.dart';
 import '../../l10n/app_strings.dart';
 import '../../platform/livebridge_platform.dart';
@@ -259,6 +260,15 @@ class _SettingsAppConfigScreenState extends State<SettingsAppConfigScreen> {
         toggleValue: _hideFromRecents,
         onToggle: (value) => unawaited(_setHideFromRecents(value)),
         onTap: () => unawaited(_setHideFromRecents(!_hideFromRecents)),
+      ),
+      LbListItemData(
+        title: strings.textFiltersTitle,
+        description: strings.textFiltersDescription,
+        onTap: () => Navigator.of(context).push<void>(
+          MaterialPageRoute<void>(
+            builder: (_) => const SettingsTextFiltersScreen(),
+          ),
+        ),
       ),
       LbListItemData(
         title: strings.sourceChannelsTitle,

@@ -22,6 +22,7 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
     private val processingHandler = NotificationProcessing.handler
     private val refreshPolicy = SnapshotRefreshPolicy()
     private val sourceLifecycle = NotificationProcessing.sourceLifecycle
+    private val originalRemovalPolicy = NotificationProcessing.originalRemovalPolicy
     private var lastSettings: Map<String, *>? = null
     private var lastInterruptionFilter: Int? = null
     @Volatile
@@ -274,7 +275,7 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
         if (!result.mirrored) {
             return
         }
-        if (!sbn.isClearable) {
+        if (!sbn.isClearable || result.retainOriginal) {
             return
         }
         val appPresentationRemoveOriginal = AppPresentationOverridesLoader
@@ -296,6 +297,15 @@ class LiveUpdateNotificationListenerService : NotificationListenerService() {
             return
         }
 
+        val persistent = sbn.notification.flags and
+            (Notification.FLAG_ONGOING_EVENT or Notification.FLAG_FOREGROUND_SERVICE) != 0 ||
+            sbn.notification.category == Notification.CATEGORY_SERVICE ||
+            sbn.packageName == "com.android.bluetooth"
+        // Limit identical reposts, not a burst of different messages in the same app/channel.
+        val title = sbn.notification.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()
+        val contentRevision = (title + "\n" + extractLogText(sbn.notification)).hashCode()
+        val removalKey = "${sbn.packageName}|${sbn.notification.channelId}|${sbn.id}|$contentRevision"
+        if (!originalRemovalPolicy.mayRemove(removalKey, SystemClock.elapsedRealtime(), persistent)) return
         rememberSelfDismissedSourceKey(sbn.key)
         sourceLifecycle.retainMirrorAfterRemoval(sbn.key)
         try {

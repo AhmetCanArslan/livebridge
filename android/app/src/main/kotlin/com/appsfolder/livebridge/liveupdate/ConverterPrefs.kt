@@ -10,6 +10,43 @@ class ConverterPrefs(context: Context) {
 
     internal fun runtimeSettingsSnapshot(): Map<String, *> = prefs.all
 
+    fun getDictionaryWordAdditionsRaw(): String = prefs.getString("dictionary_word_additions", "{}") ?: "{}"
+
+    fun setDictionaryWordAdditionsRaw(raw: String) {
+        val json = JSONObject(raw)
+        val allowed = setOf("otp_strong_triggers", "known_navigation_packages", "navigation_package_markers",
+            "weather_package_hints", "vpn_package_markers", "order_context_hints", "progress_words", "weather_words",
+            "food_words", "food_packages", "taxi_words", "taxi_packages")
+        for (key in json.keys()) {
+            require(key in allowed)
+            val words = json.getJSONArray(key)
+            require(words.length() <= 100)
+            for (i in 0 until words.length()) require(words.getString(i).length <= 200)
+        }
+        prefs.edit().putString("dictionary_word_additions", json.toString()).apply()
+    }
+
+    fun getNotificationTextFiltersRaw(): String = prefs.getString("notification_text_filters", "{}") ?: "{}"
+
+    fun setNotificationTextFiltersRaw(raw: String) {
+        val json = JSONObject(raw)
+        for (pkg in json.keys()) {
+            require(pkg.isNotBlank())
+            val rule = json.getJSONObject(pkg)
+            for (key in listOf("allow", "deny")) {
+                val terms = rule.optJSONArray(key) ?: continue
+                require(terms.length() <= 100)
+                for (i in 0 until terms.length()) require(terms.getString(i).length <= 200)
+            }
+            if (rule.has("all")) rule.getBoolean("all")
+            if (rule.has("template")) require(rule.getString("template").length <= 200)
+        }
+        prefs.edit().putString("notification_text_filters", json.toString()).apply()
+    }
+
+    fun isNotificationTextAllowed(pkg: String, text: String): Boolean =
+        NotificationTextFilters.allows(getNotificationTextFiltersRaw(), pkg, text)
+
     fun getHideFromRecentsEnabled(): Boolean = prefs.getBoolean("hide_from_recents_enabled", false)
 
     fun setHideFromRecentsEnabled(value: Boolean) {
@@ -892,6 +929,7 @@ class ConverterPrefs(context: Context) {
 
     private fun buildRulesJson(): JSONObject {
         return JSONObject()
+            .put("notification_text_filters", JSONObject(getNotificationTextFiltersRaw()))
             .put("blocked_source_channels", JSONObject(getBlockedSourceChannelsRaw()))
             .put("package_mode", getPackageMode())
             .put("package_rules", jsonArrayFromRules(getPackageRulesRaw()))
@@ -909,6 +947,7 @@ class ConverterPrefs(context: Context) {
 
     private fun buildDictionaryJson(): JSONObject {
         val dictionary = JSONObject()
+            .put("word_additions", JSONObject(getDictionaryWordAdditionsRaw()))
             .put(
                 "parser_dictionary_enabled_languages",
                 JSONArray(getParserDictionaryEnabledLanguageIds().sorted())
@@ -991,6 +1030,7 @@ class ConverterPrefs(context: Context) {
 
     private fun applyRulesJson(rules: JSONObject) {
         string(rules, "package_mode")?.let(::setPackageMode)
+        rules.optJSONObject("notification_text_filters")?.let { setNotificationTextFiltersRaw(it.toString()) }
         rules.optJSONObject("blocked_source_channels")?.let { setBlockedSourceChannelsRaw(it.toString()) }
         rulesValue(rules, "package_rules")?.let(::setPackageRulesRaw)
         rulesValue(rules, "bypass_package_rules")?.let(::setBypassPackageRulesRaw)
@@ -1005,6 +1045,7 @@ class ConverterPrefs(context: Context) {
     }
 
     private fun applyDictionaryJson(dictionary: JSONObject) {
+        dictionary.optJSONObject("word_additions")?.let { setDictionaryWordAdditionsRaw(it.toString()) }
         stringSet(dictionary, "parser_dictionary_enabled_languages")
             ?.let(::setParserDictionaryEnabledLanguageIds)
         SUPPORTED_PARSER_DICTIONARY_LANGUAGE_IDS.forEach { languageId ->
