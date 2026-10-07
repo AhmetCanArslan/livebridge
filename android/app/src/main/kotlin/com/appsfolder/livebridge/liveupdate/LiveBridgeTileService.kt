@@ -48,9 +48,9 @@ class LiveBridgeTileService : TileService() {
         tile.label = "LiveBridge"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             tile.subtitle = if (enabled) {
-                if (isRussianLocale()) "Включено" else "Enabled"
+                NativeAppStrings.text(this, "Enabled", "Включено", "Activado", "Aktiviert")
             } else {
-                if (isRussianLocale()) "Выключено" else "Disabled"
+                NativeAppStrings.text(this, "Disabled", "Выключено", "Desactivado", "Deaktiviert")
             }
         }
         tile.updateTile()
@@ -95,16 +95,6 @@ class LiveBridgeTileService : TileService() {
         return enabled.split(":")
             .mapNotNull(ComponentName::unflattenFromString)
             .any { it == service }
-    }
-
-    private fun isRussianLocale(): Boolean {
-        val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            resources.configuration.locales.get(0)
-        } else {
-            @Suppress("DEPRECATION")
-            resources.configuration.locale
-        }
-        return locale?.language?.startsWith("ru", ignoreCase = true) == true
     }
 
     companion object {

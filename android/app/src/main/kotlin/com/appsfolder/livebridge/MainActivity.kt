@@ -34,6 +34,7 @@ import com.appsfolder.livebridge.liveupdate.AppPresentationOverridesLoader
 import com.appsfolder.livebridge.liveupdate.ConverterPrefs
 import com.appsfolder.livebridge.liveupdate.ConversionLogStore
 import com.appsfolder.livebridge.liveupdate.PromotedAccessPolicy
+import com.appsfolder.livebridge.liveupdate.NativeAppStrings
 import com.appsfolder.livebridge.liveupdate.DeviceProps
 import com.appsfolder.livebridge.liveupdate.KeepAliveForegroundService
 import com.appsfolder.livebridge.liveupdate.LiveBridgeTileService
@@ -441,6 +442,12 @@ class MainActivity : FlutterActivity() {
             "getAppLanguageTag" -> res.success(prefs.getAppLanguageTag())
             "setAppLanguageTag" -> {
                 prefs.setAppLanguageTag(call.argument<String>("value"))
+                LiveUpdateNotificationListenerService.invalidateSnapshotCache()
+                LiveUpdateNotifier.ensureChannel(applicationContext)
+                syncKeepAliveForegroundService(prefs)
+                syncNetworkSpeedForegroundService(prefs)
+                LiveBridgeTileService.requestStateSync(applicationContext)
+                ensureUpdateNotificationChannel()
                 res.success(true)
             }
 
@@ -903,17 +910,8 @@ class MainActivity : FlutterActivity() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val isRuLocale = isRussianLocale()
-        val title = if (isRuLocale) {
-            "Доступно обновление LiveBridge"
-        } else {
-            "LiveBridge update available"
-        }
-        val content = if (isRuLocale) {
-            "Новая версия: $version"
-        } else {
-            "New version: $version"
-        }
+        val title = NativeAppStrings.text(this, "LiveBridge update available", "Доступно обновление LiveBridge", "Actualización de LiveBridge disponible", "LiveBridge-Update verfügbar")
+        val content = NativeAppStrings.text(this, "New version: $version", "Новая версия: $version", "Nueva versión: $version", "Neue Version: $version")
 
         val notification = NotificationCompat.Builder(applicationContext, UPDATE_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_liveupdate)
@@ -937,30 +935,16 @@ class MainActivity : FlutterActivity() {
         }
 
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (manager.getNotificationChannel(UPDATE_CHANNEL_ID) != null) {
-            return
-        }
-
-        val channel = NotificationChannel(
-            UPDATE_CHANNEL_ID,
-            UPDATE_CHANNEL_NAME,
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = "LiveBridge app update notifications"
+        val name = NativeAppStrings.text(this, "LiveBridge Updates", "Обновления LiveBridge", "Actualizaciones de LiveBridge", "LiveBridge-Updates")
+        val description = NativeAppStrings.text(this, "LiveBridge app update notifications", "Уведомления об обновлениях LiveBridge", "Notificaciones de actualizaciones de LiveBridge", "Benachrichtigungen über LiveBridge-Updates")
+        val existing = manager.getNotificationChannel(UPDATE_CHANNEL_ID)
+        if (existing != null && existing.name == name && existing.description == description) return
+        val channel = existing ?: NotificationChannel(UPDATE_CHANNEL_ID, name, NotificationManager.IMPORTANCE_HIGH).apply {
             lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
         }
+        channel.name = name
+        channel.description = description
         manager.createNotificationChannel(channel)
-    }
-
-    private fun isRussianLocale(): Boolean {
-        val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            resources.configuration.locales.get(0)
-        } else {
-            @Suppress("DEPRECATION")
-            resources.configuration.locale
-        }
-        val language = locale?.language?.lowercase(Locale.ROOT).orEmpty()
-        return language.startsWith("ru")
     }
 
     private fun isLikelyChineseDevice(): Boolean {
@@ -1331,7 +1315,6 @@ class MainActivity : FlutterActivity() {
         private const val INSTALLED_APPS_CACHE_TTL_MS = 10 * 60 * 1000L
         private const val MAX_ICON_CACHE_SIZE = 512
         private const val UPDATE_CHANNEL_ID = "livebridge_update_checks"
-        private const val UPDATE_CHANNEL_NAME = "LiveBridge Updates"
         private const val UPDATE_NOTIFICATION_ID = 32001
         private const val DEFAULT_RELEASES_URL = "https://appsfolder.github.io/livebridge/"
 

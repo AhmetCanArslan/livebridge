@@ -17,26 +17,12 @@ class AppLanguageOption {
 }
 
 const List<AppLanguageOption> appLanguageOptions = <AppLanguageOption>[
-  AppLanguageOption(
-    id: appLanguageSystemId,
-    label: 'Auto',
-    locale: null,
-  ),
-  AppLanguageOption(
-    id: 'en',
-    label: 'English',
-    locale: Locale('en'),
-  ),
-  AppLanguageOption(
-    id: 'ru',
-    label: 'Русский',
-    locale: Locale('ru'),
-  ),
-  AppLanguageOption(
-    id: 'tr',
-    label: 'Türkçe',
-    locale: Locale('tr'),
-  ),
+  AppLanguageOption(id: appLanguageSystemId, label: 'Auto', locale: null),
+  AppLanguageOption(id: 'en', label: 'English', locale: Locale('en')),
+  AppLanguageOption(id: 'es', label: 'Español', locale: Locale('es')),
+  AppLanguageOption(id: 'de', label: 'Deutsch', locale: Locale('de')),
+  AppLanguageOption(id: 'ru', label: 'Русский', locale: Locale('ru')),
+  AppLanguageOption(id: 'tr', label: 'Türkçe', locale: Locale('tr')),
   AppLanguageOption(
     id: 'pt-BR',
     label: 'Português (Brasil)',
@@ -52,15 +38,12 @@ const List<AppLanguageOption> appLanguageOptions = <AppLanguageOption>[
     label: '繁體中文',
     locale: Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
   ),
-  AppLanguageOption(
-    id: 'ko',
-    label: '한국어',
-    locale: Locale('ko'),
-  ),
+  AppLanguageOption(id: 'ko', label: '한국어', locale: Locale('ko')),
 ];
 
-final ValueNotifier<Locale?> appLocaleOverrideNotifier =
-    ValueNotifier<Locale?>(null);
+final ValueNotifier<Locale?> appLocaleOverrideNotifier = ValueNotifier<Locale?>(
+  null,
+);
 
 Future<void> loadAppLocalePreference() async {
   try {

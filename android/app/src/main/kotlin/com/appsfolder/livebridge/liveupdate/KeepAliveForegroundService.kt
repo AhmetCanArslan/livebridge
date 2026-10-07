@@ -48,6 +48,7 @@ class KeepAliveForegroundService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        ensureChannel(this)
         val notification = buildNotification()
         try {
             startForegroundCompat(notification)
@@ -97,8 +98,8 @@ class KeepAliveForegroundService : Service() {
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_liveupdate)
-            .setContentTitle("background mode")
-            .setContentText("Keep this notification here for LiveBridge stability")
+            .setContentTitle(NativeAppStrings.text(this, "background mode", "Фоновый режим", "Modo en segundo plano", "Hintergrundmodus"))
+            .setContentText(NativeAppStrings.text(this, "Keep this notification here for LiveBridge stability", "Сохраните это уведомление для стабильной работы LiveBridge", "Mantén esta notificación para que LiveBridge funcione de forma estable", "Behalte diese Benachrichtigung für einen stabilen LiveBridge-Betrieb"))
             .setContentIntent(contentIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
@@ -112,7 +113,6 @@ class KeepAliveForegroundService : Service() {
         private const val TAG = "LiveBridgeKeepAlive"
         private const val RECOVERY_INTERVAL_MS = 30_000L
         private const val CHANNEL_ID = "livebridge_keep_alive"
-        private const val CHANNEL_NAME = "Background Mode"
         private const val NOTIFICATION_ID = 41130
 
         fun start(context: Context) {
@@ -151,16 +151,16 @@ class KeepAliveForegroundService : Service() {
                 return
             }
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val name = NativeAppStrings.text(context, "Background Mode", "Фоновый режим", "Modo en segundo plano", "Hintergrundmodus")
+            val description = NativeAppStrings.text(context, "Keep this notification here to use LiveBridge", "Сохраните это уведомление для работы LiveBridge", "Mantén esta notificación para usar LiveBridge", "Behalte diese Benachrichtigung, um LiveBridge zu nutzen")
             val existing = manager.getNotificationChannel(CHANNEL_ID)
-            if (existing != null) {
-                return
+            if (existing != null && existing.name == name && existing.description == description) return
+            val channel = existing ?: NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_LOW).apply {
+                lockscreenVisibility = Notification.VISIBILITY_SECRET
             }
-            manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_LOW).apply {
-                    description = "Keep this notification here to use LiveBridge"
-                    lockscreenVisibility = Notification.VISIBILITY_SECRET
-                }
-            )
+            channel.name = name
+            channel.description = description
+            manager.createNotificationChannel(channel)
         }
     }
 }

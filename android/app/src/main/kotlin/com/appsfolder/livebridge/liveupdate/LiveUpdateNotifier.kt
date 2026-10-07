@@ -163,7 +163,7 @@ object LiveUpdateNotifier {
         val prefs = ConverterPrefs(context)
         val soundEnabled = prefs.getConvertedNotificationSoundEnabled()
         val vibrationEnabled = prefs.getConvertedNotificationVibrationEnabled()
-        val signature = "${isRussianLocale(context)}|${prefs.getHideLockscreenContentEnabled()}|$soundEnabled|$vibrationEnabled"
+        val signature = "${NativeAppStrings.language(context)}|${prefs.getHideLockscreenContentEnabled()}|$soundEnabled|$vibrationEnabled"
         val now = SystemClock.elapsedRealtime()
         if (signature == channelSignature && now - channelsCheckedAt < 60_000L) return
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -1585,13 +1585,24 @@ object LiveUpdateNotifier {
                 }
             }
         }
-        val effects = buildList {
-            if (audible) add(if (isRussian) "звук" else "sound")
-            if (vibrating) add(if (isRussian) "вибрация" else "vibration")
+        val localizedBase = when (channel) {
+            MirrorNotificationChannel.LEGACY -> MirrorChannelText(NativeAppStrings.text(context, base.name, base.name, "LiveBridge", "LiveBridge"), NativeAppStrings.text(context, base.description, base.description, "Canal antiguo para notificaciones convertidas", "Alter Kanal für umgewandelte Benachrichtigungen"))
+            MirrorNotificationChannel.PROGRESS_NOTIFICATIONS -> MirrorChannelText(NativeAppStrings.text(context, base.name, base.name, "Notificaciones de progreso", "Fortschrittsbenachrichtigungen"), NativeAppStrings.text(context, base.description, base.description, "Notificaciones convertidas con progreso", "Umgewandelte Benachrichtigungen mit Fortschritt"))
+            MirrorNotificationChannel.OTP_CODES -> MirrorChannelText(NativeAppStrings.text(context, base.name, base.name, "Códigos OTP", "OTP-Codes"), NativeAppStrings.text(context, base.description, base.description, "Conversión de códigos de verificación", "Umwandlung von Bestätigungscodes"))
+            MirrorNotificationChannel.SMART_CONVERSIONS -> MirrorChannelText(NativeAppStrings.text(context, base.name, base.name, "Conversiones inteligentes", "Intelligente Umwandlungen"), NativeAppStrings.text(context, base.description, base.description, "Taxi, entregas y conversiones similares", "Taxi, Lieferungen und ähnliche Umwandlungen"))
+            MirrorNotificationChannel.MEDIA_PLAYBACK -> MirrorChannelText(NativeAppStrings.text(context, base.name, base.name, "Reproducción multimedia", "Medienwiedergabe"), NativeAppStrings.text(context, base.description, base.description, "Notificaciones multimedia convertidas", "Umgewandelte Medienbenachrichtigungen"))
+            MirrorNotificationChannel.CALLS -> MirrorChannelText(NativeAppStrings.text(context, base.name, base.name, "Llamadas", "Anrufe"), NativeAppStrings.text(context, base.description, base.description, "Llamadas activas con duración", "Aktive Anrufe mit Anrufdauer"))
+            MirrorNotificationChannel.NETWORK_CONNECTIONS -> MirrorChannelText(NativeAppStrings.text(context, base.name, base.name, "Red y conexiones", "Netzwerk und Verbindungen"), NativeAppStrings.text(context, base.description, base.description, "VPN y dispositivos externos", "VPNs und externe Geräte"))
+            MirrorNotificationChannel.MISCELLANEOUS -> MirrorChannelText(NativeAppStrings.text(context, base.name, base.name, "Otras conversiones", "Sonstige Umwandlungen"), NativeAppStrings.text(context, base.description, base.description, "Navegación, tiempo y otras conversiones", "Navigation, Wetter und andere Umwandlungen"))
+            MirrorNotificationChannel.BYPASS -> MirrorChannelText(NativeAppStrings.text(context, base.name, base.name, "Aplicaciones que siempre se convierten", "Apps mit erzwungener Umwandlung"), NativeAppStrings.text(context, base.description, base.description, "Notificaciones de aplicaciones que omiten los filtros", "Benachrichtigungen von Apps ohne Regelfilter"))
         }
-        return if (effects.isEmpty()) base else MirrorChannelText(
-            name = "${base.name} (${effects.joinToString(", ")})",
-            description = base.description
+        val effects = buildList {
+            if (audible) add(NativeAppStrings.text(context, "sound", "звук", "sonido", "Ton"))
+            if (vibrating) add(NativeAppStrings.text(context, "vibration", "вибрация", "vibración", "Vibration"))
+        }
+        return if (effects.isEmpty()) localizedBase else MirrorChannelText(
+            name = "${localizedBase.name} (${effects.joinToString(", ")})",
+            description = localizedBase.description
         )
     }
 
@@ -1864,8 +1875,8 @@ object LiveUpdateNotifier {
             context,
             mirrorChannel.id(convertedNotificationSound, convertedNotificationVibration)
         )
-            .setContentTitle(contentTitle)
-            .setContentText(contentText)
+            .setContentTitle(if (contentTitle == "Live update in progress") NativeAppStrings.text(context, contentTitle, contentTitle, "Actualización en curso", "Live Update läuft") else contentTitle)
+            .setContentText(if (contentText == "Live update in progress") NativeAppStrings.text(context, contentText, contentText, "Actualización en curso", "Live Update läuft") else contentText)
             .setSubText(appName)
             .setOnlyAlertOnce(true)
             .setOngoing(true)
@@ -1937,6 +1948,7 @@ object LiveUpdateNotifier {
             builder.setContentIntent(proxyPendingIntent)
         }
         copySourceActions(
+            context = context,
             source = source,
             builder = builder,
             maxActions = if (otpOverride != null) {
@@ -3068,9 +3080,7 @@ object LiveUpdateNotifier {
     }
 
     private fun isRussianLocale(context: Context): Boolean {
-        val locale = currentLocale(context)
-        val language = locale?.language?.lowercase(Locale.ROOT).orEmpty()
-        return language.startsWith("ru")
+        return NativeAppStrings.language(context) == "ru"
     }
 
     private fun isLikelyMoneyCandidate(
@@ -3133,7 +3143,9 @@ object LiveUpdateNotifier {
 
         val copiedLabel = when {
             isRussianLocale(context) -> "Скопировано"
-            currentLocale(context)?.language?.lowercase(Locale.ROOT) == "zh" -> "已复制"
+            NativeAppStrings.language(context) == "zh" -> "已复制"
+            NativeAppStrings.language(context) == "es" -> "Copiado"
+            NativeAppStrings.language(context) == "de" -> "Kopiert"
             else -> "Copied"
         }
 
@@ -3985,18 +3997,11 @@ object LiveUpdateNotifier {
     }
 
     private fun otpActionLabel(context: Context): String {
-        val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            context.resources.configuration.locales.get(0)
-        } else {
-            @Suppress("DEPRECATION")
-            context.resources.configuration.locale
-        }
-
-        val language = locale?.language?.lowercase(Locale.ROOT).orEmpty()
-        return if (language.startsWith("ru")) "Скопировать код" else "Copy code"
+        return NativeAppStrings.text(context, "Copy code", "Скопировать код", "Copiar código", "Code kopieren")
     }
 
     private fun copySourceActions(
+        context: Context,
         source: Notification,
         builder: NotificationCompat.Builder,
         maxActions: Int,
@@ -4016,6 +4021,7 @@ object LiveUpdateNotifier {
 
         if (preferMediaControls) {
             val preferredMediaActions = selectPreferredMediaActions(
+                context = context,
                 actions = actions.toList(),
                 isPlaying = mediaPlaybackIsPlaying,
                 useSymbols = useMediaActionSymbols
@@ -4025,6 +4031,7 @@ object LiveUpdateNotifier {
                     .take(safeMaxActions)
                     .forEach { preferredAction ->
                         val compatAction = toCompatAction(
+                            context = context,
                             frameworkAction = preferredAction.action,
                             titleOverride = preferredAction.shortTitle
                         ) ?: return@forEach
@@ -4043,7 +4050,7 @@ object LiveUpdateNotifier {
             )
             .take(safeMaxActions)
             .forEach { (_, frameworkAction) ->
-            val compatAction = toCompatAction(frameworkAction) ?: return@forEach
+            val compatAction = toCompatAction(context, frameworkAction) ?: return@forEach
             builder.addAction(compatAction)
         }
     }
@@ -4054,6 +4061,7 @@ object LiveUpdateNotifier {
     }
 
     private fun selectPreferredMediaActions(
+        context: Context,
         actions: List<Notification.Action>,
         isPlaying: Boolean?,
         useSymbols: Boolean
@@ -4108,18 +4116,18 @@ object LiveUpdateNotifier {
 
         val centerShortTitle = when {
             centerAction != null && centerAction == playAction ->
-                actionTitle("Play", MEDIA_SYMBOL_PLAY)
+                actionTitle(NativeAppStrings.text(context, "Play", "Play", "Reproducir", "Wiedergabe"), MEDIA_SYMBOL_PLAY)
 
             centerAction != null && centerAction == pauseAction ->
-                actionTitle("Pause", MEDIA_SYMBOL_PAUSE)
+                actionTitle(NativeAppStrings.text(context, "Pause", "Pause", "Pausar", "Pause"), MEDIA_SYMBOL_PAUSE)
 
-            isPlaying == false -> actionTitle("Play", MEDIA_SYMBOL_PLAY)
-            else -> actionTitle("Pause", MEDIA_SYMBOL_PAUSE)
+            isPlaying == false -> actionTitle(NativeAppStrings.text(context, "Play", "Play", "Reproducir", "Wiedergabe"), MEDIA_SYMBOL_PLAY)
+            else -> actionTitle(NativeAppStrings.text(context, "Pause", "Pause", "Pausar", "Pause"), MEDIA_SYMBOL_PAUSE)
         }
 
         val ordered = listOfNotNull(
             previousAction?.let {
-                MediaPreferredAction(it, actionTitle("Previous", MEDIA_SYMBOL_PREVIOUS))
+                MediaPreferredAction(it, actionTitle(NativeAppStrings.text(context, "Previous", "Previous", "Anterior", "Zurück"), MEDIA_SYMBOL_PREVIOUS))
             },
             centerAction?.let {
                 MediaPreferredAction(
@@ -4127,12 +4135,13 @@ object LiveUpdateNotifier {
                     shortTitle = centerShortTitle
                 )
             },
-            nextAction?.let { MediaPreferredAction(it, actionTitle("Next", MEDIA_SYMBOL_NEXT)) }
+            nextAction?.let { MediaPreferredAction(it, actionTitle(NativeAppStrings.text(context, "Next", "Next", "Siguiente", "Weiter"), MEDIA_SYMBOL_NEXT)) }
         )
         return if (ordered.size >= 2) ordered else emptyList()
     }
 
     private fun toCompatAction(
+        context: Context,
         frameworkAction: Notification.Action,
         titleOverride: String? = null
     ): NotificationCompat.Action? {
@@ -4166,7 +4175,7 @@ object LiveUpdateNotifier {
         } catch (_: Exception) {
             val title = titleOverride?.takeIf { it.isNotBlank() }
                 ?: frameworkAction.title?.toString()?.takeIf { it.isNotBlank() }
-                ?: "Action"
+                ?: NativeAppStrings.text(context, "Action", "Action", "Acción", "Aktion")
             NotificationCompat.Action.Builder(
                 transparentActionIcon,
                 title,

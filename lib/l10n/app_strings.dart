@@ -36,12 +36,16 @@ class AppStrings {
   String tr({
     required String en,
     required String ru,
+    String? es,
+    String? de,
     String? tr,
     String? ptBr,
     String? zhHans,
     String? zhHant,
     String? ko,
   }) {
+    if (locale.languageCode == 'es') return es ?? en;
+    if (locale.languageCode == 'de') return de ?? en;
     if (isRu) return ru;
     if (isTr) return tr ?? en;
     if (isPtBr) return ptBr ?? en;
@@ -51,60 +55,107 @@ class AppStrings {
     return en;
   }
 
-  String get promotionUnavailableStatus =>
-      tr(en: 'Unavailable on this firmware', ru: 'Недоступно в этой прошивке');
-  String get promotionUnknownStatus =>
-      tr(en: 'Could not check access', ru: 'Не удалось проверить доступ');
+  String get promotionUnavailableStatus => tr(
+    en: 'Unavailable on this firmware',
+    es: 'No disponible en este firmware',
+    de: 'In dieser Firmware nicht verfügbar',
+    ru: 'Недоступно в этой прошивке',
+  );
+  String get promotionUnknownStatus => tr(
+    en: 'Could not check access',
+    es: 'No se pudo comprobar el acceso',
+    de: 'Zugriff konnte nicht geprüft werden',
+    ru: 'Не удалось проверить доступ',
+  );
   String get promotionUnavailableHelp => tr(
     en: 'The system does not expose a working Live Updates permission check or settings page. This is not an overlay permission. Notification conversion can stay enabled, but the firmware decides whether to show a live capsule.',
+    es: 'El sistema no ofrece una comprobación de permisos ni una página de ajustes funcional para Live Updates. Este permiso no sirve para mostrar elementos sobre otras aplicaciones. La conversión de notificaciones puede seguir activada, pero el firmware decide si muestra una cápsula.',
+    de: 'Das System bietet keine funktionierende Berechtigungsprüfung oder Einstellungsseite für Live Updates. Dies ist keine Berechtigung zum Einblenden über anderen Apps. Die Umwandlung von Benachrichtigungen kann aktiviert bleiben; ob eine Kapsel angezeigt wird, entscheidet die Firmware.',
     ru: 'Система не предоставляет рабочую проверку или настройку доступа к Live Updates. Это не разрешение на показ поверх других приложений. Конвертация уведомлений может оставаться включённой, но показ капсулы зависит от прошивки.',
   );
-  String get networkSpeedHideWhenLocked =>
-      tr(en: 'Hide speed when locked', ru: 'Скрывать скорость при блокировке');
+  String get networkSpeedHideWhenLocked => tr(
+    en: 'Hide speed when locked',
+    es: 'Ocultar velocidad al bloquear',
+    de: 'Geschwindigkeit bei Sperre ausblenden',
+    ru: 'Скрывать скорость при блокировке',
+  );
   String get networkSpeedHideWhenLockedHelp => tr(
     en: 'Hide the speed capsule while the screen is off or locked. It returns after unlocking. The background service notification stays in the notification panel.',
+    es: 'Oculta la cápsula de velocidad cuando la pantalla está apagada o bloqueada. Vuelve a aparecer al desbloquear. La notificación del servicio en segundo plano permanece en el panel de notificaciones.',
+    de: 'Blendet die Geschwindigkeitskapsel bei ausgeschaltetem oder gesperrtem Bildschirm aus. Nach dem Entsperren erscheint sie wieder. Die Benachrichtigung des Hintergrunddienstes bleibt in der Benachrichtigungsleiste.',
     ru: 'Скрывать капсулу скорости при выключенном или заблокированном экране. После разблокировки она возвращается. Уведомление фоновой службы остаётся в шторке.',
   );
 
-  String get textFiltersTitle =>
-      tr(en: 'Notification text filters', ru: 'Фильтры по тексту уведомлений');
+  String get textFiltersTitle => tr(
+    en: 'Notification text filters',
+    es: 'Filtros de texto de notificaciones',
+    de: 'Textfilter für Benachrichtigungen',
+    ru: 'Фильтры по тексту уведомлений',
+  );
   String get textFiltersDescription => tr(
     en: 'Choose notifications by words in their title or text. Excluded notifications keep their originals.',
+    es: 'Selecciona notificaciones según las palabras de su título o texto. Las notificaciones excluidas conservan sus originales.',
+    de: 'Wählt Benachrichtigungen anhand von Wörtern im Titel oder Text aus. Die Originale ausgeschlossener Benachrichtigungen bleiben erhalten.',
     ru: 'Выбирайте уведомления по словам в заголовке или тексте. Оригиналы исключённых уведомлений сохраняются.',
   );
   String get filterTemplateTitle => tr(
     en: 'Custom island text (optional)',
+    es: 'Texto personalizado de la cápsula (opcional)',
+    de: 'Eigener Kapseltext (optional)',
     ru: 'Свой текст на островке (необязательно)',
   );
   String get filterTemplateHelp => tr(
     en: 'Use {title}, {text}, and {app}, or write your own text. Empty app templates use the global template. Call controls, media players and OTP codes keep their original presentation.',
+    es: 'Usa {title}, {text} y {app}, o escribe tu propio texto. Si la plantilla de una aplicación está vacía, se usa la global. Las llamadas, los reproductores y los códigos OTP conservan su presentación original.',
+    de: 'Verwende {title}, {text} und {app} oder eigenen Text. Leere App-Vorlagen verwenden die globale Vorlage. Anrufe, Medienplayer und OTP-Codes behalten ihre ursprüngliche Darstellung.',
     ru: 'Используйте {title}, {text} и {app} или напишите свой текст. Пустой шаблон приложения использует общий шаблон. Звонки, плеер и OTP сохраняют своё отображение.',
   );
-  String get filterAllApps => tr(en: 'All apps', ru: 'Все приложения');
+  String get filterAllApps => tr(
+    en: 'All apps',
+    es: 'Todas las aplicaciones',
+    de: 'Alle Apps',
+    ru: 'Все приложения',
+  );
   String get filterAllowWords => tr(
     en: 'Must contain (one word or phrase per line)',
+    es: 'Debe contener (una palabra o frase por línea)',
+    de: 'Muss enthalten (ein Wort oder Ausdruck pro Zeile)',
     ru: 'Должно содержать (слово или фраза на строку)',
   );
   String get filterDenyWords => tr(
     en: 'Do not convert if it contains',
+    es: 'No convertir si contiene',
+    de: 'Nicht umwandeln, wenn enthalten',
     ru: 'Не конвертировать, если содержит',
   );
   String get filterMatchAll => tr(
     en: 'Require all allowed phrases',
+    es: 'Exigir todas las frases permitidas',
+    de: 'Alle erlaubten Ausdrücke verlangen',
     ru: 'Требовать все разрешённые фразы',
   );
   String get filterHelp => tr(
     en: 'Matching ignores case. Exclusions win. Leave the allowed list empty to allow any text. Global and app filters both apply, including always-convert apps.',
+    es: 'No se distingue entre mayúsculas y minúsculas. Las exclusiones tienen prioridad. Deja vacía la lista de palabras permitidas para aceptar cualquier texto. Se aplican tanto los filtros globales como los de cada aplicación, incluso a las aplicaciones que siempre se convierten.',
+    de: 'Groß- und Kleinschreibung wird ignoriert. Ausschlüsse haben Vorrang. Eine leere Liste erlaubter Ausdrücke lässt jeden Text zu. Globale Filter und App-Filter gelten gemeinsam, auch für Apps mit erzwungener Umwandlung.',
     ru: 'Регистр не учитывается. Запрет имеет приоритет. Пустой разрешённый список пропускает любой текст. Общий фильтр и фильтр приложения действуют вместе, в том числе для «всегда конвертировать».',
   );
   String get wordEditorHelp => tr(
     en: 'Add recognition words and app hints, one per line. Built-in dictionaries and imported rules are kept. Remove your additions here to return to built-in recognition.',
+    es: 'Añade palabras de reconocimiento e identificadores de aplicaciones, uno por línea. Se conservan los diccionarios integrados y las reglas importadas. Elimina tus añadidos para volver al reconocimiento original.',
+    de: 'Füge Erkennungswörter und App-Kennungen hinzu, jeweils eines pro Zeile. Integrierte Wörterbücher und importierte Regeln bleiben erhalten. Entferne deine Ergänzungen, um zur ursprünglichen Erkennung zurückzukehren.',
     ru: 'Добавляйте слова распознавания и подсказки приложений, по одному на строку. Встроенные словари и импортированные правила сохраняются. Удалите добавленные слова, чтобы вернуть исходное распознавание.',
   );
-  String get editorClear =>
-      tr(en: 'Clear additions', ru: 'Очистить добавления');
+  String get editorClear => tr(
+    en: 'Clear additions',
+    es: 'Borrar añadidos',
+    de: 'Ergänzungen löschen',
+    ru: 'Очистить добавления',
+  );
   String get editorLimit => tr(
     en: 'Use at most 100 entries per field, up to 200 characters each.',
+    es: 'Máximo de 100 entradas por campo, de hasta 200 caracteres cada una.',
+    de: 'Höchstens 100 Einträge pro Feld mit jeweils bis zu 200 Zeichen.',
     ru: 'Не более 100 строк в поле, до 200 символов в каждой.',
   );
   String dictionaryWordField(String key) {
@@ -112,36 +163,90 @@ class AppStrings {
       'otp_strong_triggers': [
         'Verification code words',
         'Слова для кодов подтверждения',
+        'Palabras para códigos de verificación',
+        'Wörter für Bestätigungscodes',
       ],
-      'progress_words': ['Progress words', 'Слова прогресса'],
-      'weather_words': ['Weather words', 'Слова о погоде'],
+      'progress_words': [
+        'Progress words',
+        'Слова прогресса',
+        'Palabras de progreso',
+        'Fortschrittswörter',
+      ],
+      'weather_words': [
+        'Weather words',
+        'Слова о погоде',
+        'Palabras meteorológicas',
+        'Wetterwörter',
+      ],
       'weather_package_hints': [
         'Weather app hints',
         'Подсказки погодных приложений',
+        'Identificadores de aplicaciones meteorológicas',
+        'Kennungen für Wetter-Apps',
       ],
       'known_navigation_packages': [
         'Navigation app packages',
         'Пакеты навигационных приложений',
+        'Paquetes de aplicaciones de navegación',
+        'Pakete von Navigations-Apps',
       ],
       'navigation_package_markers': [
         'Navigation app hints',
         'Подсказки навигационных приложений',
+        'Identificadores de aplicaciones de navegación',
+        'Kennungen für Navigations-Apps',
       ],
-      'vpn_package_markers': ['VPN app hints', 'Подсказки VPN-приложений'],
-      'order_context_hints': ['Order words', 'Слова о заказах'],
-      'food_words': ['Food delivery words', 'Слова о доставке еды'],
+      'vpn_package_markers': [
+        'VPN app hints',
+        'Подсказки VPN-приложений',
+        'Identificadores de aplicaciones VPN',
+        'Kennungen für VPN-Apps',
+      ],
+      'order_context_hints': [
+        'Order words',
+        'Слова о заказах',
+        'Palabras de contexto de pedidos',
+        'Wörter zum Bestellkontext',
+      ],
+      'food_words': [
+        'Food delivery words',
+        'Слова о доставке еды',
+        'Palabras de entrega de comida',
+        'Wörter für Essenslieferungen',
+      ],
       'food_packages': [
         'Food delivery app hints',
         'Подсказки приложений доставки еды',
+        'Identificadores de aplicaciones de entrega de comida',
+        'Kennungen für Essensliefer-Apps',
       ],
-      'taxi_words': ['Taxi words', 'Слова о такси'],
-      'taxi_packages': ['Taxi app hints', 'Подсказки приложений такси'],
+      'taxi_words': [
+        'Taxi words',
+        'Слова о такси',
+        'Palabras de taxi',
+        'Taxi-Wörter',
+      ],
+      'taxi_packages': [
+        'Taxi app hints',
+        'Подсказки приложений такси',
+        'Identificadores de aplicaciones de taxi',
+        'Kennungen für Taxi-Apps',
+      ],
     };
-    return labels[key]?[isRu ? 1 : 0] ?? key;
+    final index = locale.languageCode == 'es'
+        ? 2
+        : locale.languageCode == 'de'
+        ? 3
+        : isRu
+        ? 1
+        : 0;
+    return labels[key]?[index] ?? key;
   }
 
   String get settingsSaveError => tr(
     en: "Could not save the setting. Please try again.",
+    es: 'No se pudo guardar el ajuste. Inténtalo de nuevo.',
+    de: 'Die Einstellung konnte nicht gespeichert werden. Bitte erneut versuchen.',
     ru: "Не удалось сохранить настройку. Попробуйте ещё раз.",
     tr: "Ayar kaydedilemedi. Lütfen tekrar deneyin.",
     ptBr: "Não foi possível salvar a configuração. Tente novamente.",
@@ -151,6 +256,8 @@ class AppStrings {
   );
   String get hideFromRecentsTitle => tr(
     en: "Hide from recent apps",
+    es: 'Ocultar de aplicaciones recientes',
+    de: 'Aus zuletzt verwendeten Apps ausblenden',
     ru: "Скрывать из недавних приложений",
     tr: "Son uygulamalardan gizle",
     ptBr: "Ocultar dos apps recentes",
@@ -160,6 +267,8 @@ class AppStrings {
   );
   String get hideFromRecentsDescription => tr(
     en: "Hide LiveBridge in the app switcher. This does not keep it running in the background.",
+    es: 'Oculta LiveBridge en la lista de aplicaciones recientes. Esto no garantiza que siga funcionando en segundo plano.',
+    de: 'Blendet LiveBridge in der Übersicht zuletzt verwendeter Apps aus. Dies hält die App nicht im Hintergrund aktiv.',
     ru: "Скрывать LiveBridge в списке недавних приложений. Это не защищает от остановки в фоне.",
     tr: "LiveBridge uygulamasını son uygulamalar listesinden gizler. Arka planda çalışmasını garanti etmez.",
     ptBr:
@@ -170,6 +279,8 @@ class AppStrings {
   );
   String get sourceChannelsTitle => tr(
     en: "Source notification channels",
+    es: 'Canales de notificación de origen',
+    de: 'Kanäle der Quellbenachrichtigungen',
     ru: "Каналы исходных уведомлений",
     tr: "Kaynak bildirim kanalları",
     ptBr: "Canais de notificação de origem",
@@ -179,6 +290,8 @@ class AppStrings {
   );
   String get sourceChannelsDescription => tr(
     en: "Choose which channels LiveBridge can convert. Original notifications are unaffected.",
+    es: 'Elige qué canales puede convertir LiveBridge. Las notificaciones originales se conservan.',
+    de: 'Wähle aus, welche Kanäle LiveBridge umwandeln darf. Die Originalbenachrichtigungen bleiben erhalten.',
     ru: "Выберите, какие каналы LiveBridge может конвертировать. Исходные уведомления сохраняются.",
     tr: "LiveBridge uygulamasının dönüştürebileceği kanalları seçin. Orijinal bildirimler etkilenmez.",
     ptBr:
@@ -189,6 +302,8 @@ class AppStrings {
   );
   String get sourceChannelsEmpty => tr(
     en: "Channels appear after their apps post notifications while notification access is enabled. Refresh this list after receiving a notification.",
+    es: 'Los canales aparecen cuando sus aplicaciones envían notificaciones con el acceso a notificaciones activado. Actualiza esta lista después de recibir una notificación.',
+    de: 'Kanäle erscheinen, sobald ihre Apps bei aktiviertem Benachrichtigungszugriff eine Benachrichtigung senden. Aktualisiere die Liste nach dem Empfang einer Benachrichtigung.',
     ru: "Каналы появятся после поступления уведомлений при включённом доступе к ним. Получите уведомление и обновите список.",
     tr: "Bildirim erişimi açıkken uygulamalar bildirim gönderdiğinde kanallar görünür. Bildirim aldıktan sonra listeyi yenileyin.",
     ptBr:
@@ -199,6 +314,8 @@ class AppStrings {
   );
   String get sourceChannelsSearch => tr(
     en: "Search apps and channels",
+    es: 'Buscar aplicaciones y canales',
+    de: 'Apps und Kanäle suchen',
     ru: "Поиск приложений и каналов",
     tr: "Uygulama ve kanal ara",
     ptBr: "Buscar apps e canais",
@@ -208,6 +325,8 @@ class AppStrings {
   );
   String get sourceChannelsError => tr(
     en: "Could not load or save channels. Please try again.",
+    es: 'No se pudieron cargar o guardar los canales. Inténtalo de nuevo.',
+    de: 'Kanäle konnten nicht geladen oder gespeichert werden. Bitte erneut versuchen.',
     ru: "Не удалось загрузить или сохранить каналы. Попробуйте ещё раз.",
     tr: "Kanallar yüklenemedi veya kaydedilemedi. Lütfen tekrar deneyin.",
     ptBr: "Não foi possível carregar ou salvar os canais. Tente novamente.",
@@ -217,6 +336,8 @@ class AppStrings {
   );
   String get sourceChannelsRefresh => tr(
     en: "Refresh",
+    es: 'Actualizar',
+    de: 'Aktualisieren',
     ru: "Обновить",
     tr: "Yenile",
     ptBr: "Atualizar",
@@ -231,6 +352,8 @@ class AppStrings {
 
   String get refresh => tr(
     en: 'Refresh',
+    es: 'Actualizar',
+    de: 'Aktualisieren',
     ru: 'Обновить',
     tr: 'Yenile',
     ptBr: 'Atualizar',
@@ -241,6 +364,8 @@ class AppStrings {
 
   String get permissionGranted => tr(
     en: 'Notification permission granted.',
+    es: 'Permiso de notificaciones concedido.',
+    de: 'Benachrichtigungsberechtigung erteilt.',
     ru: 'Разрешение на уведомления выдано.',
     tr: 'Bildirim izni verildi.',
     ptBr: 'Permissão de notificações concedida.',
@@ -251,6 +376,8 @@ class AppStrings {
 
   String get permissionDenied => tr(
     en: 'Notification permission was not granted.',
+    es: 'No se concedió el permiso de notificaciones.',
+    de: 'Benachrichtigungsberechtigung nicht erteilt.',
     ru: 'Разрешение на уведомления не выдано.',
     tr: 'Bildirim izni verilmedi.',
     ptBr: 'Permissão de notificações não concedida.',
@@ -261,6 +388,8 @@ class AppStrings {
 
   String get listenerUnavailable => tr(
     en: 'Unable to open Listener settings on this device.',
+    es: 'No se pueden abrir los ajustes de acceso a notificaciones en este dispositivo.',
+    de: 'Die Einstellungen für den Benachrichtigungszugriff können auf diesem Gerät nicht geöffnet werden.',
     ru: 'Не удалось открыть настройки Listener.',
     tr: 'Bu cihazda Listener ayarları açılamıyor.',
     ptBr:
@@ -272,6 +401,8 @@ class AppStrings {
 
   String get notificationsUnavailable => tr(
     en: 'Unable to open app notification settings.',
+    es: 'No se pueden abrir los ajustes de notificaciones de la aplicación.',
+    de: 'Die Benachrichtigungseinstellungen der App können nicht geöffnet werden.',
     ru: 'Не удалось открыть настройки уведомлений.',
     tr: 'Uygulama bildirim ayarları açılamıyor.',
     ptBr: 'Não foi possível abrir as configurações de notificação do app.',
@@ -282,6 +413,8 @@ class AppStrings {
 
   String get liveUpdatesUnavailable => tr(
     en: 'Unable to open Live Updates settings on this device.',
+    es: 'No se pueden abrir los ajustes de Live Updates en este dispositivo.',
+    de: 'Die Live-Updates-Einstellungen können auf diesem Gerät nicht geöffnet werden.',
     ru: 'Не удалось открыть настройки Live Updates.',
     tr: 'Bu cihazda Live Updates ayarları açılamıyor.',
     ptBr:
@@ -293,6 +426,8 @@ class AppStrings {
 
   String get githubOpenFailed => tr(
     en: 'Unable to open GitHub link.',
+    es: 'No se puede abrir el enlace de GitHub.',
+    de: 'Der GitHub-Link kann nicht geöffnet werden.',
     ru: 'Не удалось открыть ссылку GitHub.',
     tr: 'GitHub bağlantısı açılamıyor.',
     ptBr: 'Não foi possível abrir o link do GitHub.',
@@ -303,6 +438,8 @@ class AppStrings {
 
   String get linkOpenFailed => tr(
     en: 'Unable to open link.',
+    es: 'No se puede abrir el enlace.',
+    de: 'Der Link kann nicht geöffnet werden.',
     ru: 'Не удалось открыть ссылку.',
     tr: 'Bağlantı açılamıyor.',
     ptBr: 'Não foi possível abrir o link.',
@@ -313,6 +450,8 @@ class AppStrings {
 
   String get updateCheckFailed => tr(
     en: 'Unable to check updates. Try disabling VPN.',
+    es: 'No se pudieron buscar actualizaciones. Prueba a desactivar la VPN.',
+    de: 'Updates konnten nicht geprüft werden. Versuche, die VPN zu deaktivieren.',
     ru: 'Не удалось проверить обновления. Попробуйте отключить VPN.',
     tr: 'Güncellemeler denetlenemiyor. VPN\'i kapatmayı deneyin.',
     ptBr: 'Não foi possível verificar atualizações. Tente desativar a VPN.',
@@ -323,6 +462,8 @@ class AppStrings {
 
   String get dictionaryEmpty => tr(
     en: 'Dictionary is empty or invalid.',
+    es: 'El diccionario está vacío o no es válido.',
+    de: 'Das Wörterbuch ist leer oder ungültig.',
     ru: 'Словарь пустой или поврежден.',
     tr: 'Sözlük boş veya geçersiz.',
     ptBr: 'O dicionário está vazio ou inválido.',
@@ -333,6 +474,8 @@ class AppStrings {
 
   String get dictionaryUpdateDone => tr(
     en: 'Dictionary updated from GitHub.',
+    es: 'Diccionario actualizado desde GitHub.',
+    de: 'Wörterbuch von GitHub aktualisiert.',
     ru: 'Словарь обновлен из GitHub.',
     tr: 'Sözlük GitHub\'dan güncellendi.',
     ptBr: 'Dicionário atualizado do GitHub.',
@@ -343,6 +486,8 @@ class AppStrings {
 
   String get dictionaryInvalid => tr(
     en: 'Invalid dictionary JSON.',
+    es: 'El JSON del diccionario no es válido.',
+    de: 'Ungültiges Wörterbuch-JSON.',
     ru: 'Невалидный JSON словаря.',
     tr: 'Geçersiz sözlük JSON\'u.',
     ptBr: 'JSON do dicionário inválido.',
@@ -353,6 +498,8 @@ class AppStrings {
 
   String get dictionaryUpdateFailed => tr(
     en: 'Failed to update dictionary from GitHub.',
+    es: 'No se pudo actualizar el diccionario desde GitHub.',
+    de: 'Das Wörterbuch konnte nicht von GitHub aktualisiert werden.',
     ru: 'Не удалось обновить словарь из GitHub.',
     tr: 'Sözlük GitHub\'dan güncellenemedi.',
     ptBr: 'Falha ao atualizar o dicionário do GitHub.',
@@ -363,6 +510,8 @@ class AppStrings {
 
   String get dictionaryTitle => tr(
     en: 'Dictionary',
+    es: 'Diccionario',
+    de: 'Wörterbuch',
     ru: 'Словарь',
     tr: 'Sözlük',
     ptBr: 'Dicionário',
@@ -373,6 +522,8 @@ class AppStrings {
 
   String get dictionaryManageSubtitle => tr(
     en: 'tap to manage',
+    es: 'pulsa para gestionar',
+    de: 'zum Verwalten tippen',
     ru: 'нажмите для управления',
     tr: 'yönetmek için açın',
     ptBr: 'toque para gerenciar',
@@ -383,6 +534,8 @@ class AppStrings {
 
   String get dictionaryLanguagesTitle => tr(
     en: 'Dictionary languages',
+    es: 'Idiomas del diccionario',
+    de: 'Wörterbuchsprachen',
     ru: 'Языки словаря',
     tr: 'Sözlük dilleri',
     ptBr: 'Idiomas do dicionário',
@@ -393,6 +546,8 @@ class AppStrings {
 
   String get dictionaryLanguagesSubtitle => tr(
     en: 'tap to choose',
+    es: 'pulsa para elegir',
+    de: 'zum Auswählen tippen',
     ru: 'нажмите для выбора',
     tr: 'seçmek için açın',
     ptBr: 'toque para escolher',
@@ -403,6 +558,8 @@ class AppStrings {
 
   String get dictionaryLanguagesPickerTitle => tr(
     en: 'Select languages for conversion',
+    es: 'Seleccionar idiomas para la conversión',
+    de: 'Sprachen für die Umwandlung auswählen',
     ru: 'Выберите языки для конвертации',
     tr: 'Dönüştürme için dilleri seçin',
     ptBr: 'Selecione idiomas para conversão',
@@ -413,6 +570,8 @@ class AppStrings {
 
   String get dictionaryUpdateAction => tr(
     en: 'Update dictionaries',
+    es: 'Actualizar diccionarios',
+    de: 'Wörterbücher aktualisieren',
     ru: 'Обновить словари',
     tr: 'Sözlükleri güncelle',
     ptBr: 'Atualizar dicionários',
@@ -423,6 +582,8 @@ class AppStrings {
 
   String get dictionaryUpdateDescription => tr(
     en: 'downloads the latest parser dictionaries for enabled languages',
+    es: 'descarga los últimos diccionarios de reconocimiento para los idiomas activados',
+    de: 'lädt die neuesten Erkennungswörterbücher für aktivierte Sprachen herunter',
     ru: 'загружает свежие словари парсинга для включенных языков',
     tr: 'etkin diller için en güncel ayrıştırma sözlüklerini indirir',
     ptBr:
@@ -434,6 +595,8 @@ class AppStrings {
 
   String get dictionaryEditorTitle => tr(
     en: 'Dictionary editor',
+    es: 'Editor de diccionarios',
+    de: 'Wörterbucheditor',
     ru: 'Редактор словаря',
     tr: 'Sözlük düzenleyici',
     ptBr: 'Editor de dicionário',
@@ -444,6 +607,8 @@ class AppStrings {
 
   String get dictionaryEditorDescription => tr(
     en: 'in-app dictionary editing will be added later',
+    es: 'la edición de diccionarios en la aplicación se añadirá más adelante',
+    de: 'die Wörterbuchbearbeitung in der App wird später ergänzt',
     ru: 'редактирование словарей внутри приложения появится позже',
     tr: 'uygulama içi sözlük düzenleme daha sonra eklenecek',
     ptBr: 'a edição de dicionários dentro do app será adicionada depois',
@@ -454,6 +619,8 @@ class AppStrings {
 
   String get dictionaryComingSoon => tr(
     en: '(coming soon)',
+    es: '(próximamente)',
+    de: '(demnächst)',
     ru: '(скоро)',
     tr: '(yakında)',
     ptBr: '(em breve)',
@@ -464,6 +631,8 @@ class AppStrings {
 
   String get navHome => tr(
     en: 'Home',
+    es: 'Inicio',
+    de: 'Start',
     ru: 'Домой',
     tr: 'Ana sayfa',
     ptBr: 'Início',
@@ -474,6 +643,8 @@ class AppStrings {
 
   String get navRules => tr(
     en: 'Rules',
+    es: 'Reglas',
+    de: 'Regeln',
     ru: 'Правила',
     tr: 'Kurallar',
     ptBr: 'Regras',
@@ -484,6 +655,8 @@ class AppStrings {
 
   String get navSettings => tr(
     en: 'Settings',
+    es: 'Ajustes',
+    de: 'Einstellungen',
     ru: 'Настройки',
     tr: 'Ayarlar',
     ptBr: 'Configurações',
@@ -494,6 +667,8 @@ class AppStrings {
 
   String get redesignRulesTitle => tr(
     en: 'Rules',
+    es: 'Reglas',
+    de: 'Regeln',
     ru: 'Правила',
     tr: 'Kurallar',
     ptBr: 'Regras',
@@ -504,6 +679,8 @@ class AppStrings {
 
   String get appConfigTitle => tr(
     en: 'App config',
+    es: 'Configuración de la aplicación',
+    de: 'App-Konfiguration',
     ru: 'Настройки приложения',
     tr: 'Uygulama ayarları',
     ptBr: 'Configurações do app',
@@ -514,6 +691,8 @@ class AppStrings {
 
   String get backupRestoreTitle => tr(
     en: 'Backup & Restore',
+    es: 'Copia de seguridad y restauración',
+    de: 'Sichern und Wiederherstellen',
     ru: 'Backup & Restore',
     tr: 'Yedekleme ve geri yükleme',
     ptBr: 'Backup e restauração',
@@ -524,6 +703,8 @@ class AppStrings {
 
   String get exportLiveBridgeSettingsTitle => tr(
     en: 'Export LiveBridge settings',
+    es: 'Exportar ajustes de LiveBridge',
+    de: 'LiveBridge-Einstellungen exportieren',
     ru: 'Экспорт настроек LiveBridge',
     tr: 'LiveBridge ayarlarını dışa aktar',
     ptBr: 'Exportar configurações do LiveBridge',
@@ -534,6 +715,8 @@ class AppStrings {
 
   String get importLiveBridgeSettingsTitle => tr(
     en: 'Import LiveBridge settings',
+    es: 'Importar ajustes de LiveBridge',
+    de: 'LiveBridge-Einstellungen importieren',
     ru: 'Импорт настроек LiveBridge',
     tr: 'LiveBridge ayarlarını içe aktar',
     ptBr: 'Importar configurações do LiveBridge',
@@ -544,6 +727,8 @@ class AppStrings {
 
   String get importFromDebugTitle => tr(
     en: 'Import from debug JSON',
+    es: 'Importar desde JSON de diagnóstico',
+    de: 'Aus Diagnose-JSON importieren',
     ru: 'Импорт из debug JSON',
     tr: 'Debug JSON’dan içe aktar',
     ptBr: 'Importar do debug JSON',
@@ -554,6 +739,8 @@ class AppStrings {
 
   String get liveBridgeSettingsExported => tr(
     en: 'LiveBridge settings exported.',
+    es: 'Ajustes de LiveBridge exportados.',
+    de: 'LiveBridge-Einstellungen exportiert.',
     ru: 'Настройки LiveBridge экспортированы.',
     tr: 'LiveBridge ayarları dışa aktarıldı.',
     ptBr: 'Configurações do LiveBridge exportadas.',
@@ -564,6 +751,8 @@ class AppStrings {
 
   String get liveBridgeSettingsExportFailed => tr(
     en: 'Failed to export LiveBridge settings.',
+    es: 'No se pudieron exportar los ajustes de LiveBridge.',
+    de: 'LiveBridge-Einstellungen konnten nicht exportiert werden.',
     ru: 'Не удалось экспортировать настройки LiveBridge.',
     tr: 'LiveBridge ayarları dışa aktarılamadı.',
     ptBr: 'Falha ao exportar configurações do LiveBridge.',
@@ -574,6 +763,8 @@ class AppStrings {
 
   String get liveBridgeSettingsImported => tr(
     en: 'LiveBridge settings imported.',
+    es: 'Ajustes de LiveBridge importados.',
+    de: 'LiveBridge-Einstellungen importiert.',
     ru: 'Настройки LiveBridge импортированы.',
     tr: 'LiveBridge ayarları içe aktarıldı.',
     ptBr: 'Configurações do LiveBridge importadas.',
@@ -584,6 +775,8 @@ class AppStrings {
 
   String get liveBridgeSettingsImportFailed => tr(
     en: 'Failed to import LiveBridge settings.',
+    es: 'No se pudieron importar los ajustes de LiveBridge.',
+    de: 'LiveBridge-Einstellungen konnten nicht importiert werden.',
     ru: 'Не удалось импортировать настройки LiveBridge.',
     tr: 'LiveBridge ayarları içe aktarılamadı.',
     ptBr: 'Falha ao importar configurações do LiveBridge.',
@@ -594,6 +787,8 @@ class AppStrings {
 
   String get copyOldDebugJsonFirst => tr(
     en: 'please copy your old debug JSON first',
+    es: 'copia primero tu antiguo JSON de diagnóstico',
+    de: 'kopiere zuerst dein bisheriges Diagnose-JSON',
     ru: 'сначала скопируйте старый debug JSON',
     tr: 'lütfen önce eski debug JSON’unuzu kopyalayın',
     ptBr: 'copie seu debug JSON antigo primeiro',
@@ -604,6 +799,8 @@ class AppStrings {
 
   String get appLanguageTitle => tr(
     en: 'App language',
+    es: 'Idioma de la aplicación',
+    de: 'App-Sprache',
     ru: 'Язык приложения',
     tr: 'Uygulama dili',
     ptBr: 'Idioma do app',
@@ -614,6 +811,8 @@ class AppStrings {
 
   String get appLanguagePickerTitle => tr(
     en: 'Choose app language',
+    es: 'Elegir idioma de la aplicación',
+    de: 'App-Sprache auswählen',
     ru: 'Выберите язык приложения',
     tr: 'Uygulama dilini seçin',
     ptBr: 'Escolha o idioma do app',
@@ -624,6 +823,8 @@ class AppStrings {
 
   String get appLanguageSystem => tr(
     en: 'Auto',
+    es: 'Automático',
+    de: 'Automatisch',
     ru: 'Автовыбор',
     tr: 'Otomatik',
     ptBr: 'Automático',
@@ -634,6 +835,8 @@ class AppStrings {
 
   String get brandSpecificTitle => tr(
     en: 'Brand-specific',
+    es: 'Ajustes del fabricante',
+    de: 'Herstellerspezifisch',
     ru: 'Brand-specific',
     tr: 'Markaya özel',
     ptBr: 'Específico da marca',
@@ -644,6 +847,8 @@ class AppStrings {
 
   String get appUpdatesTitle => tr(
     en: 'App updates',
+    es: 'Actualizaciones de la aplicación',
+    de: 'App-Updates',
     ru: 'Обновления приложения',
     tr: 'Uygulama güncellemeleri',
     ptBr: 'Atualizações do app',
@@ -654,6 +859,8 @@ class AppStrings {
 
   String get statusRunning => tr(
     en: 'Running',
+    es: 'En funcionamiento',
+    de: 'Aktiv',
     ru: 'Запущен',
     tr: 'Çalışıyor',
     ptBr: 'Em execução',
@@ -664,6 +871,8 @@ class AppStrings {
 
   String get statusDisabled => tr(
     en: 'LiveBridge is disabled',
+    es: 'LiveBridge está desactivado',
+    de: 'LiveBridge ist deaktiviert',
     ru: 'LiveBridge выключен',
     tr: 'LiveBridge devre dışı',
     ptBr: 'LiveBridge está desativado',
@@ -674,6 +883,8 @@ class AppStrings {
 
   String get statusByPrefix => tr(
     en: 'by ',
+    es: 'por ',
+    de: 'von ',
     ru: 'by ',
     tr: 'by ',
     ptBr: 'por ',
@@ -684,6 +895,8 @@ class AppStrings {
 
   String get discussTitle => tr(
     en: 'Discuss',
+    es: 'Comunidad',
+    de: 'Austausch',
     ru: 'Discuss',
     tr: 'Tartış',
     ptBr: 'Discutir',
@@ -694,6 +907,8 @@ class AppStrings {
 
   String get discussSubtitle => tr(
     en: 'telegram topics',
+    es: 'temas de Telegram',
+    de: 'Telegram-Themen',
     ru: 'telegram topics',
     tr: 'telegram konuları',
     ptBr: 'tópicos do Telegram',
@@ -704,6 +919,8 @@ class AppStrings {
 
   String get rulesModeAllApps => tr(
     en: 'all apps',
+    es: 'todas las aplicaciones',
+    de: 'alle Apps',
     ru: 'все приложения',
     tr: 'tüm uygulamalar',
     ptBr: 'todos os apps',
@@ -714,6 +931,8 @@ class AppStrings {
 
   String get rulesModeOnlySelected => tr(
     en: 'only selected',
+    es: 'solo las seleccionadas',
+    de: 'nur ausgewählte',
     ru: 'только выбранные',
     tr: 'yalnızca seçilenler',
     ptBr: 'somente selecionados',
@@ -724,6 +943,8 @@ class AppStrings {
 
   String get rulesModeExcludeSelected => tr(
     en: 'exclude selected',
+    es: 'excluir las seleccionadas',
+    de: 'ausgewählte ausschließen',
     ru: 'исключая выбранные',
     tr: 'seçilenleri hariç tut',
     ptBr: 'excluir selecionados',
@@ -734,6 +955,8 @@ class AppStrings {
 
   String get permissionCheckRequired => tr(
     en: 'check required',
+    es: 'requiere comprobación',
+    de: 'Prüfung erforderlich',
     ru: 'требуется проверка',
     tr: 'kontrol gerekli',
     ptBr: 'verificação necessária',
@@ -744,6 +967,8 @@ class AppStrings {
 
   String get permissionsAllSet => tr(
     en: 'all set',
+    es: 'todo listo',
+    de: 'alles bereit',
     ru: 'всё хорошо',
     tr: 'hazır',
     ptBr: 'tudo certo',
@@ -754,6 +979,8 @@ class AppStrings {
 
   String get versionTapToUpdate => tr(
     en: 'tap to update',
+    es: 'pulsa para actualizar',
+    de: 'zum Aktualisieren tippen',
     ru: 'нажмите для обновления',
     tr: 'güncellemek için dokunun',
     ptBr: 'toque para atualizar',
@@ -764,6 +991,8 @@ class AppStrings {
 
   String get versionLatestVersion => tr(
     en: 'latest version',
+    es: 'última versión',
+    de: 'neueste Version',
     ru: 'последняя версия',
     tr: 'son sürüm',
     ptBr: 'versão mais recente',
@@ -774,6 +1003,8 @@ class AppStrings {
 
   String get recentConversions => tr(
     en: 'Recent conversions',
+    es: 'Conversiones recientes',
+    de: 'Letzte Umwandlungen',
     ru: 'Последние конвертации',
     tr: 'Son dönüştürmeler',
     ptBr: 'Conversões recentes',
@@ -784,6 +1015,8 @@ class AppStrings {
 
   String get noConversionsYet => tr(
     en: 'no conversions yet',
+    es: 'aún no hay conversiones',
+    de: 'noch keine Umwandlungen',
     ru: 'конвертаций пока нет',
     tr: 'henüz dönüştürme yok',
     ptBr: 'nenhuma conversão ainda',
@@ -794,6 +1027,8 @@ class AppStrings {
 
   String get conversionLogDisabled => tr(
     en: 'conversion log is disabled',
+    es: 'el registro de conversiones está desactivado',
+    de: 'das Umwandlungsprotokoll ist deaktiviert',
     ru: 'лог конвертаций выключен',
     tr: 'dönüştürme günlüğü kapalı',
     ptBr: 'o log de conversões está desativado',
@@ -804,6 +1039,8 @@ class AppStrings {
 
   String get enable => tr(
     en: 'enable',
+    es: 'activar',
+    de: 'aktivieren',
     ru: 'включить',
     tr: 'etkinleştir',
     ptBr: 'ativar',
@@ -814,6 +1051,8 @@ class AppStrings {
 
   String get payloadCopied => tr(
     en: 'Payload copied',
+    es: 'Datos copiados',
+    de: 'Daten kopiert',
     ru: 'Payload скопирован',
     tr: 'Payload kopyalandı',
     ptBr: 'Payload copiado',
@@ -824,6 +1063,8 @@ class AppStrings {
 
   String get progressTitle => tr(
     en: 'Progress',
+    es: 'Progreso',
+    de: 'Fortschritt',
     ru: 'Прогресс',
     tr: 'İlerleme',
     ptBr: 'Barras de Progresso (Downloads/Mídia)',
@@ -834,6 +1075,8 @@ class AppStrings {
 
   String get nativeProgressTitle => tr(
     en: 'Native progress',
+    es: 'Progreso nativo',
+    de: 'Nativer Fortschritt',
     ru: 'Нативный прогресс',
     tr: 'Yerel ilerleme',
     ptBr: 'Barras de progresso do sistema',
@@ -844,6 +1087,8 @@ class AppStrings {
 
   String get otpCodesTitle => tr(
     en: 'OTP codes',
+    es: 'Códigos OTP',
+    de: 'OTP-Codes',
     ru: 'OTP-коды',
     tr: 'OTP kodları',
     ptBr: 'Códigos OTP',
@@ -854,6 +1099,8 @@ class AppStrings {
 
   String get autoCopyCodeTitle => tr(
     en: 'Auto-copy code',
+    es: 'Copiar código automáticamente',
+    de: 'Code automatisch kopieren',
     ru: 'Автокопирование кода',
     tr: 'Kodu otomatik kopyala',
     ptBr: 'Copiar código automaticamente',
@@ -864,6 +1111,8 @@ class AppStrings {
 
   String get smartConversionTitle => tr(
     en: 'Smart conversion',
+    es: 'Conversión inteligente',
+    de: 'Intelligente Umwandlung',
     ru: 'Умная конвертация',
     tr: 'Akıllı dönüştürme',
     ptBr: 'Conversão inteligente',
@@ -874,6 +1123,8 @@ class AppStrings {
 
   String get taxiTitle => tr(
     en: 'Taxi',
+    es: 'Taxi',
+    de: 'Taxi',
     ru: 'Такси',
     tr: 'Taksi',
     ptBr: 'Táxi',
@@ -884,6 +1135,8 @@ class AppStrings {
 
   String get deliveriesTitle => tr(
     en: 'Deliveries',
+    es: 'Entregas',
+    de: 'Lieferungen',
     ru: 'Доставки',
     tr: 'Teslimatlar',
     ptBr: 'Entregas',
@@ -894,6 +1147,8 @@ class AppStrings {
 
   String get removeOriginalMessageTitle => tr(
     en: 'Remove original message',
+    es: 'Eliminar mensaje original',
+    de: 'Originalnachricht entfernen',
     ru: 'Удалять исходное уведомление',
     tr: 'Orijinal bildirimi kaldır',
     ptBr: 'Remover notificação original (Evita notificações duplicadas)',
@@ -904,6 +1159,8 @@ class AppStrings {
 
   String get experimentalSuffix => tr(
     en: '(exp)',
+    es: '(exp.)',
+    de: '(exp.)',
     ru: '(exp)',
     tr: '(deneysel)',
     ptBr: '(exp)',
@@ -914,6 +1171,8 @@ class AppStrings {
 
   String get allAppsTitle => tr(
     en: 'All apps',
+    es: 'Todas las aplicaciones',
+    de: 'Alle Apps',
     ru: 'Все приложения',
     tr: 'Tüm uygulamalar',
     ptBr: 'Todos os apps',
@@ -924,6 +1183,8 @@ class AppStrings {
 
   String get onlySelectedTitle => tr(
     en: 'Only selected',
+    es: 'Solo las seleccionadas',
+    de: 'Nur ausgewählte',
     ru: 'Только выбранные',
     tr: 'Yalnızca seçilenler',
     ptBr: 'Somente selecionados',
@@ -934,6 +1195,8 @@ class AppStrings {
 
   String get excludeSelectedTitle => tr(
     en: 'Exclude selected',
+    es: 'Excluir las seleccionadas',
+    de: 'Ausgewählte ausschließen',
     ru: 'Исключить выбранные',
     tr: 'Seçilenleri hariç tut',
     ptBr: 'Excluir selecionados',
@@ -944,6 +1207,8 @@ class AppStrings {
 
   String get conversionModeTitle => tr(
     en: 'Conversion mode',
+    es: 'Modo de conversión',
+    de: 'Umwandlungsmodus',
     ru: 'Режим конвертации',
     tr: 'Dönüştürme modu',
     ptBr: 'Modo de conversão',
@@ -954,6 +1219,8 @@ class AppStrings {
 
   String get selectedAppsTitle => tr(
     en: 'Selected apps',
+    es: 'Aplicaciones seleccionadas',
+    de: 'Ausgewählte Apps',
     ru: 'Приложения',
     tr: 'Seçili uygulamalar',
     ptBr: 'Apps selecionados',
@@ -964,6 +1231,8 @@ class AppStrings {
 
   String get showSystem => tr(
     en: 'show system',
+    es: 'mostrar del sistema',
+    de: 'System-Apps anzeigen',
     ru: 'показать системные',
     tr: 'sistem uygulamalarını göster',
     ptBr: 'mostrar aplicativos do sistema',
@@ -974,6 +1243,8 @@ class AppStrings {
 
   String get hideSystem => tr(
     en: 'hide system',
+    es: 'ocultar del sistema',
+    de: 'System-Apps ausblenden',
     ru: 'скрыть системные',
     tr: 'sistem uygulamalarını gizle',
     ptBr: 'ocultar aplicativos do sistema',
@@ -984,6 +1255,8 @@ class AppStrings {
 
   String get networkConnectionsTitle => tr(
     en: 'Network & Connections',
+    es: 'Red y conexiones',
+    de: 'Netzwerk und Verbindungen',
     ru: 'Сеть и подключения',
     tr: 'Ağ ve Bağlantılar',
     ptBr: 'Rede e conexões',
@@ -994,6 +1267,8 @@ class AppStrings {
 
   String get vpnsTitle => tr(
     en: 'VPNs',
+    es: 'VPN',
+    de: 'VPNs',
     ru: 'VPN',
     tr: 'VPN\'ler',
     ptBr: 'VPNs',
@@ -1004,6 +1279,8 @@ class AppStrings {
 
   String get externalDevicesTitle => tr(
     en: 'External devices',
+    es: 'Dispositivos externos',
+    de: 'Externe Geräte',
     ru: 'Внешние устройства',
     tr: 'Harici cihazlar',
     ptBr: 'Dispositivos externos',
@@ -1014,6 +1291,8 @@ class AppStrings {
 
   String get ignoreDebuggingDevicesTitle => tr(
     en: 'Ignore debugging devices',
+    es: 'Ignorar dispositivos de depuración',
+    de: 'Debugging-Geräte ignorieren',
     ru: 'Игнорировать отладочные устройства',
     tr: 'Hata ayıklama cihazlarını yok say',
     ptBr: 'Ignorar dispositivos de depuração',
@@ -1024,6 +1303,8 @@ class AppStrings {
 
   String get networkSpeedThresholdRedesignTitle => tr(
     en: 'Network speed threshold',
+    es: 'Umbral de velocidad de red',
+    de: 'Schwellenwert für die Netzwerkgeschwindigkeit',
     ru: 'Порог скорости сети',
     tr: 'Ağ hızı eşiği',
     ptBr: 'Limite de velocidade de rede',
@@ -1034,6 +1315,8 @@ class AppStrings {
 
   String get miscellaneousTitle => tr(
     en: 'Miscellaneous',
+    es: 'Otros',
+    de: 'Sonstiges',
     ru: 'Разное',
     tr: 'Diğer',
     ptBr: 'Diversos',
@@ -1044,6 +1327,8 @@ class AppStrings {
 
   String get navigationMapsTitle => tr(
     en: 'Navigation (maps)',
+    es: 'Navegación (mapas)',
+    de: 'Navigation (Karten)',
     ru: 'Навигация (карты)',
     tr: 'Navigasyon (haritalar)',
     ptBr: 'Navegação (mapas)',
@@ -1054,6 +1339,8 @@ class AppStrings {
 
   String get mediaPlaybackRedesignTitle => tr(
     en: 'Media playback',
+    es: 'Reproducción multimedia',
+    de: 'Medienwiedergabe',
     ru: 'Медиа',
     tr: 'Medya oynatma',
     ptBr: 'Reprodução de mídia',
@@ -1064,6 +1351,8 @@ class AppStrings {
 
   String get callsTitle => tr(
     en: 'Calls',
+    es: 'Llamadas',
+    de: 'Anrufe',
     ru: 'Звонки',
     tr: 'Aramalar',
     ptBr: 'Chamadas',
@@ -1074,6 +1363,8 @@ class AppStrings {
 
   String get showMediaOnLockTitle => tr(
     en: 'Show media on lockscreen',
+    es: 'Mostrar multimedia en la pantalla de bloqueo',
+    de: 'Medien auf dem Sperrbildschirm anzeigen',
     ru: 'Медиа на экране блокировки',
     tr: 'Kilit ekranında medyayı göster',
     ptBr: 'Mostrar apenas na tela de bloqueio',
@@ -1084,6 +1375,8 @@ class AppStrings {
 
   String get useSymbolsInMediaPlayerTitle => tr(
     en: 'Use symbols in media player',
+    es: 'Usar símbolos en el reproductor',
+    de: 'Symbole im Medienplayer verwenden',
     ru: 'Символы в медиаплеере',
     tr: 'Medya oynatıcıda semboller kullan',
     ptBr: 'Usar símbolos no reprodutor de mídia',
@@ -1094,6 +1387,8 @@ class AppStrings {
 
   String get weatherBroadcastsTitle => tr(
     en: 'Weather broadcasts',
+    es: 'Avisos meteorológicos',
+    de: 'Wetterbenachrichtigungen',
     ru: 'Прогнозы погоды',
     tr: 'Hava durumu bildirimleri',
     ptBr: 'Alertas de clima',
@@ -1104,6 +1399,8 @@ class AppStrings {
 
   String get bypassTitle => tr(
     en: 'Always convert',
+    es: 'Convertir siempre',
+    de: 'Immer umwandeln',
     ru: 'Всегда конвертировать',
     tr: 'Her zaman dönüştür',
     ptBr: 'Sempre converter',
@@ -1114,6 +1411,8 @@ class AppStrings {
 
   String get bypassDescription => tr(
     en: 'Converts selected apps even when no rule matches',
+    es: 'Convierte las aplicaciones seleccionadas aunque no coincidan con ninguna regla',
+    de: 'Wandelt Benachrichtigungen ausgewählter Apps auch ohne passende Regel um',
     ru: 'Конвертирует выбранные приложения, даже если правила не совпали',
     tr: 'Hiçbir kural eşleşmese bile seçili uygulamaları dönüştürür',
     ptBr: 'Converte os apps selecionados mesmo sem uma regra correspondente',
@@ -1124,6 +1423,8 @@ class AppStrings {
 
   String get perAppSettingsTitle => tr(
     en: 'Per-app settings',
+    es: 'Ajustes por aplicación',
+    de: 'Einstellungen pro App',
     ru: 'Настройки приложений',
     tr: 'Uygulama bazlı ayarlar',
     ptBr: 'Configurações por app',
@@ -1134,6 +1435,8 @@ class AppStrings {
 
   String get defaultsTitle => tr(
     en: 'Defaults',
+    es: 'Valores predeterminados',
+    de: 'Standardeinstellungen',
     ru: 'По умолчанию',
     tr: 'Varsayılanlar',
     ptBr: 'Padrões',
@@ -1144,6 +1447,8 @@ class AppStrings {
 
   String get defaultsSubtitle => tr(
     en: 'tap to change default behavior',
+    es: 'pulsa para cambiar el comportamiento predeterminado',
+    de: 'zum Ändern des Standardverhaltens tippen',
     ru: 'нажмите, чтобы изменить поведение',
     tr: 'varsayılan davranışı değiştirmek için dokunun',
     ptBr: 'toque para alterar o comportamento padrão',
@@ -1154,6 +1459,8 @@ class AppStrings {
 
   String get appsListTitle => tr(
     en: 'Apps list',
+    es: 'Lista de aplicaciones',
+    de: 'App-Liste',
     ru: 'Список приложений',
     tr: 'Uygulama listesi',
     ptBr: 'Lista de apps',
@@ -1164,6 +1471,8 @@ class AppStrings {
 
   String get exportLabel => tr(
     en: 'Export',
+    es: 'Exportar',
+    de: 'Exportieren',
     ru: 'Экспорт',
     tr: 'Dışa aktar',
     ptBr: 'Exportar',
@@ -1174,6 +1483,8 @@ class AppStrings {
 
   String get importLabel => tr(
     en: 'Import',
+    es: 'Importar',
+    de: 'Importieren',
     ru: 'Импорт',
     tr: 'İçe aktar',
     ptBr: 'Importar',
@@ -1184,6 +1495,8 @@ class AppStrings {
 
   String get titleSourceTitle => tr(
     en: 'Title source',
+    es: 'Origen del título',
+    de: 'Titelquelle',
     ru: 'Источник заголовка',
     tr: 'Başlık kaynağı',
     ptBr: 'Origem do título',
@@ -1194,6 +1507,8 @@ class AppStrings {
 
   String get contentSourceTitle => tr(
     en: 'Content source',
+    es: 'Origen del contenido',
+    de: 'Inhaltsquelle',
     ru: 'Источник контента',
     tr: 'İçerik kaynağı',
     ptBr: 'Origem do conteúdo',
@@ -1204,6 +1519,8 @@ class AppStrings {
 
   String get notificationTitleOption => tr(
     en: 'Notification title',
+    es: 'Título de la notificación',
+    de: 'Benachrichtigungstitel',
     ru: 'Заголовок уведомления',
     tr: 'Bildirim başlığı',
     ptBr: 'Título da notificação',
@@ -1214,6 +1531,8 @@ class AppStrings {
 
   String get appTitleOption => tr(
     en: 'App title',
+    es: 'Nombre de la aplicación',
+    de: 'App-Name',
     ru: 'Название приложения',
     tr: 'Uygulama başlığı',
     ptBr: 'Título do app',
@@ -1224,6 +1543,8 @@ class AppStrings {
 
   String get notificationTextOption => tr(
     en: 'Notification text',
+    es: 'Texto de la notificación',
+    de: 'Benachrichtigungstext',
     ru: 'Текст уведомления',
     tr: 'Bildirim metni',
     ptBr: 'Texto da notificação',
@@ -1234,6 +1555,8 @@ class AppStrings {
 
   String get appUpdateNewVersionTitle => tr(
     en: 'New version available',
+    es: 'Nueva versión disponible',
+    de: 'Neue Version verfügbar',
     ru: 'Доступна новая версия',
     tr: 'Yeni sürüm mevcut',
     ptBr: 'Nova versão disponível',
@@ -1244,6 +1567,8 @@ class AppStrings {
 
   String get appUpdateCheckingTitle => tr(
     en: 'Checking for updates',
+    es: 'Buscando actualizaciones',
+    de: 'Updates werden gesucht',
     ru: 'Проверяем обновления',
     tr: 'Güncellemeler denetleniyor',
     ptBr: 'Verificando atualizações',
@@ -1254,6 +1579,8 @@ class AppStrings {
 
   String get appUpdateAllSetTitle => tr(
     en: 'You’re all set',
+    es: 'Todo listo',
+    de: 'Alles auf dem neuesten Stand',
     ru: 'Всё хорошо',
     tr: 'Her şey hazır',
     ptBr: 'Tudo pronto',
@@ -1264,6 +1591,8 @@ class AppStrings {
 
   String get appUpdateDownloadsSubtitle => tr(
     en: 'tap to go to downloads',
+    es: 'pulsa para ir a las descargas',
+    de: 'zum Öffnen der Downloads tippen',
     ru: 'перейти к загрузке',
     tr: 'indirmelere gitmek için dokunun',
     ptBr: 'toque para ir aos downloads',
@@ -1274,6 +1603,8 @@ class AppStrings {
 
   String get appUpdatePleaseWaitSubtitle => tr(
     en: 'please wait a moment',
+    es: 'espera un momento',
+    de: 'bitte kurz warten',
     ru: 'подождите немного',
     tr: 'lütfen biraz bekleyin',
     ptBr: 'aguarde um momento',
@@ -1284,6 +1615,8 @@ class AppStrings {
 
   String get appUpdateLatestSubtitle => tr(
     en: 'latest version already',
+    es: 'ya tienes la última versión',
+    de: 'bereits die neueste Version',
     ru: 'установлена последняя версия',
     tr: 'zaten son sürüm',
     ptBr: 'já está na versão mais recente',
@@ -1294,6 +1627,8 @@ class AppStrings {
 
   String get appUpdateLogTitle => tr(
     en: 'What\'s new',
+    es: 'Novedades',
+    de: 'Neuerungen',
     ru: 'Что нового',
     tr: 'Güncelleme günlüğü',
     ptBr: 'Registro de atualização',
@@ -1304,6 +1639,8 @@ class AppStrings {
 
   String get appUpdateLogLoading => tr(
     en: 'loading update log...',
+    es: 'cargando novedades...',
+    de: 'Änderungsprotokoll wird geladen...',
     ru: 'загружаем список изменений...',
     tr: 'güncelleme günlüğü yükleniyor...',
     ptBr: 'carregando registro de atualização...',
@@ -1314,6 +1651,8 @@ class AppStrings {
 
   String get appUpdateLogUnavailable => tr(
     en: 'update log is not available',
+    es: 'las novedades no están disponibles',
+    de: 'Änderungsprotokoll nicht verfügbar',
     ru: 'список изменений недоступен',
     tr: 'güncelleme günlüğü mevcut değil',
     ptBr: 'registro de atualização indisponível',
@@ -1324,6 +1663,8 @@ class AppStrings {
 
   String get visitProjectPageTitle => tr(
     en: 'Visit project page',
+    es: 'Visitar la página del proyecto',
+    de: 'Projektseite besuchen',
     ru: 'Открыть страницу проекта',
     tr: 'Proje sayfasını aç',
     ptBr: 'Abrir página do projeto',
@@ -1334,6 +1675,8 @@ class AppStrings {
 
   String get visitGithubTitle => tr(
     en: 'Visit GitHub',
+    es: 'Visitar GitHub',
+    de: 'GitHub besuchen',
     ru: 'Открыть GitHub',
     tr: 'GitHub\'ı aç',
     ptBr: 'Abrir GitHub',
@@ -1344,6 +1687,8 @@ class AppStrings {
 
   String get updateProfileNewVersionTitle => tr(
     en: 'New version available',
+    es: 'Nueva versión disponible',
+    de: 'Neue Version verfügbar',
     ru: 'Доступна новая версия',
     tr: 'Yeni sürüm mevcut',
     ptBr: 'Nova versão disponível',
@@ -1354,6 +1699,8 @@ class AppStrings {
 
   String updateProfileVersionSubtitle(String current, String latest) => tr(
     en: '$current -> $latest | tap to see',
+    es: '$current -> $latest | pulsa para ver',
+    de: '$current -> $latest | zum Anzeigen tippen',
     ru: '$current -> $latest | посмотреть',
     tr: '$current -> $latest | görmek için dokunun',
     ptBr: '$current -> $latest | toque para ver',
@@ -1364,6 +1711,8 @@ class AppStrings {
 
   String get updateProfileAvailableSubtitle => tr(
     en: 'update available | tap to see',
+    es: 'actualización disponible | pulsa para ver',
+    de: 'Update verfügbar | zum Anzeigen tippen',
     ru: 'доступно обновление | посмотреть',
     tr: 'güncelleme mevcut | görmek için dokunun',
     ptBr: 'atualização disponível | toque para ver',
@@ -1374,6 +1723,8 @@ class AppStrings {
 
   String get updateProfileOpenSubtitle => tr(
     en: 'tap to open update settings',
+    es: 'pulsa para abrir los ajustes de actualización',
+    de: 'zum Öffnen der Update-Einstellungen tippen',
     ru: 'нажмите для настройки',
     tr: 'güncelleme ayarlarını açmak için dokunun',
     ptBr: 'toque para abrir ajustes de atualização',
@@ -1384,6 +1735,8 @@ class AppStrings {
 
   String get conversionLogTitle => tr(
     en: 'Conversion log',
+    es: 'Registro de conversiones',
+    de: 'Umwandlungsprotokoll',
     ru: 'Лог конвертаций',
     tr: 'Dönüştürme günlüğü',
     ptBr: 'Log de conversões',
@@ -1394,6 +1747,8 @@ class AppStrings {
 
   String get logLengthTitle => tr(
     en: 'Log length',
+    es: 'Tamaño del registro',
+    de: 'Protokollgröße',
     ru: 'Размер лога',
     tr: 'Günlük boyutu',
     ptBr: 'Tamanho do log',
@@ -1404,6 +1759,8 @@ class AppStrings {
 
   String get xiaomiHyperIslandTitle => tr(
     en: 'Xiaomi HyperIsland',
+    es: 'Xiaomi HyperIsland',
+    de: 'Xiaomi HyperIsland',
     ru: 'Xiaomi HyperIsland',
     tr: 'Xiaomi HyperIsland',
     ptBr: 'Xiaomi HyperIsland',
@@ -1414,6 +1771,8 @@ class AppStrings {
 
   String get lengthTitle => tr(
     en: 'Length',
+    es: 'Longitud',
+    de: 'Länge',
     ru: 'Длина',
     tr: 'Uzunluk',
     ptBr: 'Tamanho',
@@ -1424,6 +1783,8 @@ class AppStrings {
 
   String get otpDedupTitle => tr(
     en: 'OTP dedup',
+    es: 'Eliminar duplicados de OTP',
+    de: 'OTP-Duplikate vermeiden',
     ru: 'OTP dedup',
     tr: 'OTP tekilleştirme',
     ptBr: 'Desduplicação de OTP',
@@ -1434,6 +1795,8 @@ class AppStrings {
 
   String get smartConversionDedupTitle => tr(
     en: 'Smart conversion dedup',
+    es: 'Eliminar duplicados de conversión inteligente',
+    de: 'Duplikate intelligenter Umwandlungen vermeiden',
     ru: 'Smart conversion dedup',
     tr: 'Akıllı dönüştürme tekilleştirme',
     ptBr: 'Desduplicação da conversão inteligente',
@@ -1444,6 +1807,8 @@ class AppStrings {
 
   String get animatedIslandRedesignTitle => tr(
     en: 'Animated Island',
+    es: 'Cápsula animada',
+    de: 'Animierte Kapsel',
     ru: 'Анимированный остров',
     tr: 'Animasyonlu ada',
     ptBr: 'Ilha animada',
@@ -1454,6 +1819,8 @@ class AppStrings {
 
   String get updateFrequencyTitle => tr(
     en: 'Update frequency',
+    es: 'Frecuencia de actualización',
+    de: 'Aktualisierungsintervall',
     ru: 'Частота обновления',
     tr: 'Güncelleme sıklığı',
     ptBr: 'Frequência de atualização',
@@ -1464,6 +1831,8 @@ class AppStrings {
 
   String get copyDebugJsonTitle => tr(
     en: 'Copy debug JSON',
+    es: 'Copiar JSON de diagnóstico',
+    de: 'Diagnose-JSON kopieren',
     ru: 'Скопировать debug JSON',
     tr: 'Debug JSON\'unu kopyala',
     ptBr: 'Copiar JSON de debug',
@@ -1474,6 +1843,8 @@ class AppStrings {
 
   String get copyDebugJsonDescription => tr(
     en: 'copies device, permission, settings, and rules state for bug reports',
+    es: 'copia el estado del dispositivo, los permisos, los ajustes y las reglas para informar de errores',
+    de: 'kopiert Geräteinformationen, Berechtigungen, Einstellungen und Regeln für Fehlerberichte',
     ru: 'копирует состояние устройства, разрешений, настроек и правил для issue',
     tr: 'hata raporları için cihaz, izin, ayar ve kural durumunu kopyalar',
     ptBr:
@@ -1485,6 +1856,8 @@ class AppStrings {
 
   String get openGithubPageTitle => tr(
     en: 'Open GitHub page',
+    es: 'Abrir página de GitHub',
+    de: 'GitHub-Seite öffnen',
     ru: 'Открыть GitHub',
     tr: 'GitHub sayfasını aç',
     ptBr: 'Abrir página do GitHub',
@@ -1495,6 +1868,8 @@ class AppStrings {
 
   String get openGithubPageDescription => tr(
     en: 'opens the GitHub issue page for reporting bugs',
+    es: 'abre la página de incidencias de GitHub para informar de errores',
+    de: 'öffnet die GitHub-Issue-Seite zum Melden von Fehlern',
     ru: 'открывает страницу GitHub Issues для багрепорта',
     tr: 'hata bildirmek için GitHub Issues sayfasını açar',
     ptBr: 'abre a página de Issues do GitHub para reportar bugs',
@@ -1505,6 +1880,8 @@ class AppStrings {
 
   String get autoCopyDebugJsonTitle => tr(
     en: 'Auto-copy debug JSON',
+    es: 'Copiar JSON de diagnóstico automáticamente',
+    de: 'Diagnose-JSON automatisch kopieren',
     ru: 'Автокопирование debug JSON',
     tr: 'Debug JSON\'unu otomatik kopyala',
     ptBr: 'Copiar JSON de debug automaticamente',
@@ -1515,6 +1892,8 @@ class AppStrings {
 
   String get autoCopyDebugJsonDescription => tr(
     en: 'copies diagnostics automatically before opening GitHub',
+    es: 'copia los datos de diagnóstico automáticamente antes de abrir GitHub',
+    de: 'kopiert Diagnosedaten automatisch vor dem Öffnen von GitHub',
     ru: 'автоматически копирует диагностику перед открытием GitHub',
     tr: 'GitHub açılmadan önce tanılama verilerini otomatik kopyalar',
     ptBr: 'copia os diagnósticos automaticamente antes de abrir o GitHub',
@@ -1525,6 +1904,8 @@ class AppStrings {
 
   String conversionLogFrom(String appLabel) => tr(
     en: 'from $appLabel',
+    es: 'de $appLabel',
+    de: 'von $appLabel',
     ru: 'от $appLabel',
     tr: '$appLabel uygulamasından',
     ptBr: 'de $appLabel',
@@ -1535,6 +1916,8 @@ class AppStrings {
 
   String conversionLogAt(String time) => tr(
     en: 'at $time',
+    es: 'a las $time',
+    de: 'um $time',
     ru: 'в $time',
     tr: time,
     ptBr: 'às $time',
@@ -1545,6 +1928,8 @@ class AppStrings {
 
   String get conversionLogEntryTitleLabel => tr(
     en: 'Title',
+    es: 'Título',
+    de: 'Titel',
     ru: 'Заголовок',
     tr: 'Başlık',
     ptBr: 'Título',
@@ -1555,6 +1940,8 @@ class AppStrings {
 
   String get payloadJsonTitle => tr(
     en: 'Payload JSON',
+    es: 'Datos JSON',
+    de: 'JSON-Daten',
     ru: 'Payload JSON',
     tr: 'Payload JSON',
     ptBr: 'Payload JSON',
@@ -1565,6 +1952,8 @@ class AppStrings {
 
   String get loadingApps => tr(
     en: 'loading apps...',
+    es: 'cargando aplicaciones...',
+    de: 'Apps werden geladen...',
     ru: 'загрузка приложений...',
     tr: 'uygulamalar yükleniyor...',
     ptBr: 'carregando apps...',
@@ -1575,6 +1964,8 @@ class AppStrings {
 
   String get searchForApps => tr(
     en: 'Search for apps...',
+    es: 'Buscar aplicaciones...',
+    de: 'Apps suchen...',
     ru: 'Поиск приложений...',
     tr: 'Uygulama ara...',
     ptBr: 'Buscar apps...',
@@ -1587,6 +1978,8 @@ class AppStrings {
 
   String get reportBug => tr(
     en: 'Report a bug',
+    es: 'Informar de un error',
+    de: 'Fehler melden',
     ru: 'Сообщить о баге',
     tr: 'Hata bildir',
     ptBr: 'Reportar um bug',
@@ -1597,6 +1990,8 @@ class AppStrings {
 
   String get supportLiveBridgeTitle => tr(
     en: 'Support LiveBridge',
+    es: 'Apoyar a LiveBridge',
+    de: 'LiveBridge unterstützen',
     ru: 'Поддержать LiveBridge',
     tr: 'LiveBridge’i destekle',
     ptBr: 'Apoiar o LiveBridge',
@@ -1607,6 +2002,8 @@ class AppStrings {
 
   String get supportIntroTitle => tr(
     en: 'Keep LiveBridge free',
+    es: 'Mantén LiveBridge gratuito',
+    de: 'LiveBridge kostenlos halten',
     ru: 'LiveBridge остается бесплатным',
     tr: 'LiveBridge ücretsiz kalsın',
     ptBr: 'Mantenha o LiveBridge gratuito',
@@ -1617,6 +2014,8 @@ class AppStrings {
 
   String get supportIntroBody => tr(
     en: 'Donations are optional and never unlock features. They help cover testing devices and development time.',
+    es: 'Las donaciones son opcionales y no desbloquean funciones. Ayudan a financiar dispositivos de prueba y tiempo de desarrollo.',
+    de: 'Spenden sind freiwillig und schalten keine Funktionen frei. Sie helfen, Testgeräte und Entwicklungszeit zu finanzieren.',
     ru: 'Донаты добровольны и не открывают функций. Они помогают покрывать тестовые устройства и время разработки.',
     tr: 'Bağışlar isteğe bağlıdır ve özellik açmaz. Test cihazlarını ve geliştirme süresini destekler.',
     ptBr:
@@ -1628,6 +2027,8 @@ class AppStrings {
 
   String get supportBoostyTitle => tr(
     en: 'Boosty',
+    es: 'Boosty',
+    de: 'Boosty',
     ru: 'Boosty',
     tr: 'Boosty',
     ptBr: 'Boosty',
@@ -1638,6 +2039,8 @@ class AppStrings {
 
   String get supportBoostySubtitle => tr(
     en: 'cards and recurring support',
+    es: 'tarjetas y apoyo recurrente',
+    de: 'Kartenzahlung und regelmäßige Unterstützung',
     ru: 'карты и регулярная поддержка',
     tr: 'kartlar ve düzenli destek',
     ptBr: 'cartões e apoio recorrente',
@@ -1648,6 +2051,8 @@ class AppStrings {
 
   String get supportCryptoTitle => tr(
     en: 'Crypto',
+    es: 'Criptomonedas',
+    de: 'Kryptowährungen',
     ru: 'Криптовалюта',
     tr: 'Kripto',
     ptBr: 'Cripto',
@@ -1658,6 +2063,8 @@ class AppStrings {
 
   String get supportCryptoSubtitle => tr(
     en: 'copy wallet details',
+    es: 'copiar datos de la cartera',
+    de: 'Wallet-Daten kopieren',
     ru: 'скопировать реквизиты кошелька',
     tr: 'cüzdan bilgilerini kopyala',
     ptBr: 'copiar dados da carteira',
@@ -1668,6 +2075,8 @@ class AppStrings {
 
   String get supportDiscussTitle => tr(
     en: 'Discuss',
+    es: 'Comunidad',
+    de: 'Austausch',
     ru: 'Discuss',
     tr: 'Tartış',
     ptBr: 'Discutir',
@@ -1678,6 +2087,8 @@ class AppStrings {
 
   String get supportDiscussSubtitle => tr(
     en: 'telegram topics',
+    es: 'temas de Telegram',
+    de: 'Telegram-Themen',
     ru: 'telegram topics',
     tr: 'telegram konuları',
     ptBr: 'tópicos no telegram',
@@ -1688,6 +2099,8 @@ class AppStrings {
 
   String get supportGithubTitle => tr(
     en: 'Star on GitHub',
+    es: 'Dar una estrella en GitHub',
+    de: 'Stern auf GitHub vergeben',
     ru: 'Поставить звезду на GitHub',
     tr: 'GitHub',
     ptBr: 'GitHub',
@@ -1698,6 +2111,8 @@ class AppStrings {
 
   String get supportGithubSubtitle => tr(
     en: 'source code and releases',
+    es: 'código fuente y versiones',
+    de: 'Quellcode und Releases',
     ru: 'исходный код и релизы',
     tr: 'kaynak kod ve sürümler',
     ptBr: 'código-fonte e versões',
@@ -1708,6 +2123,8 @@ class AppStrings {
 
   String get supportMethodNotConfigured => tr(
     en: 'Support method is not configured yet.',
+    es: 'El método de apoyo aún no está configurado.',
+    de: 'Diese Unterstützungsmethode ist noch nicht eingerichtet.',
     ru: 'Способ поддержки еще не настроен.',
     tr: 'Destek yöntemi henüz yapılandırılmadı.',
     ptBr: 'O método de apoio ainda não foi configurado.',
@@ -1718,6 +2135,8 @@ class AppStrings {
 
   String get supportCryptoCopied => tr(
     en: 'Crypto details copied',
+    es: 'Datos de criptomonedas copiados',
+    de: 'Kryptodaten kopiert',
     ru: 'Криптореквизиты скопированы',
     tr: 'Kripto bilgileri kopyalandı',
     ptBr: 'Dados de cripto copiados',
@@ -1728,6 +2147,8 @@ class AppStrings {
 
   String get bugReportCopied => tr(
     en: 'Diagnostics copied to clipboard. Paste it into the issue.',
+    es: 'Diagnóstico copiado al portapapeles. Pégalo en la incidencia.',
+    de: 'Diagnosedaten in die Zwischenablage kopiert. Füge sie in das Issue ein.',
     ru: 'Диагностика скопирована в буфер. Вставьте в issue.',
     tr: 'Tanılama panoya kopyalandı. Issue içine yapıştırın.',
     ptBr: 'Diagnóstico copiado para a área de transferência. Cole no issue.',
@@ -1738,6 +2159,8 @@ class AppStrings {
 
   String get bugReportCopyFailed => tr(
     en: 'Failed to copy diagnostics.',
+    es: 'No se pudieron copiar los datos de diagnóstico.',
+    de: 'Diagnosedaten konnten nicht kopiert werden.',
     ru: 'Не удалось скопировать диагностику.',
     tr: 'Tanılama kopyalanamadı.',
     ptBr: 'Falha ao copiar diagnóstico.',
@@ -1748,6 +2171,8 @@ class AppStrings {
 
   String get accessTitle => tr(
     en: 'Permissions',
+    es: 'Permisos',
+    de: 'Berechtigungen',
     ru: 'Разрешения',
     tr: 'İzinler',
     ptBr: 'Permissões',
@@ -1758,6 +2183,8 @@ class AppStrings {
 
   String get listenerAccess => tr(
     en: 'Notification Listener access',
+    es: 'Acceso a notificaciones',
+    de: 'Benachrichtigungszugriff',
     ru: 'Доступ к уведомлениям',
     tr: 'Bildirim dinleyicisi erişimi',
     ptBr: 'Permitir acesso do app as notificações',
@@ -1768,6 +2195,8 @@ class AppStrings {
 
   String get postNotifications => tr(
     en: 'Post notifications permission',
+    es: 'Permiso para enviar notificaciones',
+    de: 'Berechtigung zum Senden von Benachrichtigungen',
     ru: 'Отправка уведомлений',
     tr: 'Bildirim gönderme izni',
     ptBr: 'Permita que o app envie notificações',
@@ -1778,6 +2207,8 @@ class AppStrings {
 
   String get liveUpdatesAccess => tr(
     en: 'Live Updates promotion',
+    es: 'Permiso de Live Updates',
+    de: 'Live-Updates-Berechtigung',
     ru: 'Разрешение на Live Updates',
     tr: 'Live Updates tanıtımı',
     ptBr: 'Permitir atualizações ao vivo',
@@ -1788,6 +2219,8 @@ class AppStrings {
 
   String get settingsTitle => tr(
     en: 'Settings',
+    es: 'Ajustes',
+    de: 'Einstellungen',
     ru: 'Настройки',
     tr: 'Ayarlar',
     ptBr: 'Configurações',
@@ -1798,6 +2231,8 @@ class AppStrings {
 
   String get keepAliveForegroundTitle => tr(
     en: 'Alt background mode',
+    es: 'Modo alternativo en segundo plano',
+    de: 'Alternativer Hintergrundmodus',
     ru: 'Альтернативный фоновый режим',
     tr: 'Alternatif arka plan modu',
     ptBr: 'Modo de segundo plano alternativo',
@@ -1808,6 +2243,8 @@ class AppStrings {
 
   String get networkSpeedTitle => tr(
     en: 'Network speed',
+    es: 'Velocidad de red',
+    de: 'Netzwerkgeschwindigkeit',
     ru: 'Скорость сети',
     tr: 'Ağ hızı',
     ptBr: 'Velocidade da rede',
@@ -1818,6 +2255,8 @@ class AppStrings {
 
   String get networkSpeedThresholdAlways => tr(
     en: 'Always show',
+    es: 'Mostrar siempre',
+    de: 'Immer anzeigen',
     ru: 'Показывать всегда',
     tr: 'Her zaman göster',
     ptBr: 'Sempre mostrar',
@@ -1828,6 +2267,8 @@ class AppStrings {
 
   String get syncDndTitle => tr(
     en: 'Sync DnD',
+    es: 'Sincronizar con No molestar',
+    de: 'Mit „Nicht stören“ synchronisieren',
     ru: 'Синхронизировать DnD',
     tr: 'DnD eşitle',
     ptBr: 'Sincronizar Não Perturbe',
@@ -1838,6 +2279,8 @@ class AppStrings {
 
   String get preventDismissingTitle => tr(
     en: 'Prevent dismissing',
+    es: 'Impedir que se descarten',
+    de: 'Entfernen verhindern',
     ru: 'Запретить скрытие',
     tr: 'Bildirimi kapatmayı engelle',
     ptBr: 'Impedir fechamento',
@@ -1848,6 +2291,8 @@ class AppStrings {
 
   String get hideLockscreenContentTitle => tr(
     en: 'Hide lockscreen content',
+    es: 'Ocultar contenido en la pantalla de bloqueo',
+    de: 'Inhalt auf dem Sperrbildschirm ausblenden',
     ru: 'Скрывать на локскрине',
     tr: 'Kilit ekranında içeriği gizle',
     ptBr: 'Ocultar conteúdo quando a tela estiver bloqueada',
@@ -1858,6 +2303,8 @@ class AppStrings {
 
   String get convertedNotificationSoundTitle => tr(
     en: 'Converted notification sound',
+    es: 'Sonido de notificaciones convertidas',
+    de: 'Ton für umgewandelte Benachrichtigungen',
     ru: 'Звук конвертированных уведомлений',
     tr: 'Dönüştürülen bildirim sesi',
     ptBr: 'Som das notificações convertidas',
@@ -1868,6 +2315,8 @@ class AppStrings {
 
   String get convertedNotificationVibrationTitle => tr(
     en: 'Converted notification vibration',
+    es: 'Vibración de notificaciones convertidas',
+    de: 'Vibration für umgewandelte Benachrichtigungen',
     ru: 'Вибрация конвертированных уведомлений',
     tr: 'Dönüştürülen bildirim titreşimi',
     ptBr: 'Vibração das notificações convertidas',
@@ -1878,6 +2327,8 @@ class AppStrings {
 
   String get convertedNotificationVibrationDescription => tr(
     en: 'vibrates when a converted notification first appears; system channel settings take priority',
+    es: 'vibra cuando aparece una notificación convertida por primera vez; los ajustes del canal del sistema tienen prioridad',
+    de: 'vibriert beim ersten Erscheinen einer umgewandelten Benachrichtigung; die Kanaleinstellungen des Systems haben Vorrang',
     ru: 'вибрирует при первом появлении уведомления; системные настройки канала имеют приоритет',
     tr: 'dönüştürülen bildirim ilk göründüğünde titreşir; sistem kanal ayarları önceliklidir',
     ptBr:
@@ -1889,6 +2340,8 @@ class AppStrings {
 
   String get disableHintsTitle => tr(
     en: 'Disable hints',
+    es: 'Desactivar consejos',
+    de: 'Hinweise deaktivieren',
     ru: 'Отключить подсказки',
     tr: 'İpuçlarını kapat',
     ptBr: 'Desativar dicas',
@@ -1899,6 +2352,8 @@ class AppStrings {
 
   String get updateChecksTitle => tr(
     en: 'Update checking',
+    es: 'Buscar actualizaciones',
+    de: 'Update-Prüfung',
     ru: 'Проверка обновлений',
     tr: 'Güncellemeleri denetle',
     ptBr: 'Verificação de atualizações',
@@ -1909,6 +2364,8 @@ class AppStrings {
 
   String get updateChecksDescription => tr(
     en: 'checks GitHub releases and shows an update card when a new version is available',
+    es: 'busca versiones en GitHub y muestra una tarjeta cuando hay una nueva versión',
+    de: 'prüft GitHub-Releases und zeigt eine Karte an, wenn eine neue Version verfügbar ist',
     ru: 'проверяет релизы GitHub и показывает карточку, когда доступна новая версия',
     tr: 'GitHub sürümlerini denetler ve yeni sürüm varsa güncelleme kartı gösterir',
     ptBr:
@@ -1920,6 +2377,8 @@ class AppStrings {
 
   String get experimentalTitle => tr(
     en: 'Experimental',
+    es: 'Experimental',
+    de: 'Experimentell',
     ru: 'Экспериментальное',
     tr: 'Deneysel',
     ptBr: 'Experimental',
@@ -1930,6 +2389,8 @@ class AppStrings {
 
   String get aospCuttingTitle => tr(
     en: 'AOSP cutting',
+    es: 'Recortar texto en AOSP',
+    de: 'Textkürzung für AOSP',
     ru: 'Обрезка AOSP',
     tr: 'AOSP kırpma',
     ptBr: 'Recorte AOSP',
@@ -1940,6 +2401,8 @@ class AppStrings {
 
   String get appPresentationSettings => tr(
     en: 'Per-app behavior',
+    es: 'Comportamiento por aplicación',
+    de: 'Verhalten pro App',
     ru: 'Поведение приложений',
     tr: 'Uygulama bazlı davranış',
     ptBr: 'Comportamento por app',
@@ -1950,6 +2413,8 @@ class AppStrings {
 
   String get appPresentationLoadFailed => tr(
     en: 'Unable to load per-app settings.',
+    es: 'No se pudieron cargar los ajustes por aplicación.',
+    de: 'App-spezifische Einstellungen konnten nicht geladen werden.',
     ru: 'Не удалось загрузить настройки приложений.',
     tr: 'Uygulama bazlı ayarlar yüklenemiyor.',
     ptBr: 'Não foi possível carregar configurações por app.',
@@ -1960,6 +2425,8 @@ class AppStrings {
 
   String get appPresentationSaveFailed => tr(
     en: 'Unable to save per-app settings.',
+    es: 'No se pudieron guardar los ajustes por aplicación.',
+    de: 'App-spezifische Einstellungen konnten nicht gespeichert werden.',
     ru: 'Не удалось сохранить настройки приложений.',
     tr: 'Uygulama bazlı ayarlar kaydedilemiyor.',
     ptBr: 'Não foi possível salvar configurações por app.',
@@ -1970,6 +2437,8 @@ class AppStrings {
 
   String get appPresentationDownloadFailed => tr(
     en: 'Failed to save settings JSON.',
+    es: 'No se pudo guardar el JSON de ajustes.',
+    de: 'Einstellungs-JSON konnte nicht gespeichert werden.',
     ru: 'Не удалось сохранить JSON настроек.',
     tr: 'Ayarlar JSON\'u kaydedilemedi.',
     ptBr: 'Falha ao salvar JSON de configurações.',
@@ -1980,6 +2449,8 @@ class AppStrings {
 
   String get appPresentationSaved => tr(
     en: 'Settings saved to Downloads.',
+    es: 'Ajustes guardados en Descargas.',
+    de: 'Einstellungen unter Downloads gespeichert.',
     ru: 'Настройки сохранены в Загрузки.',
     tr: 'Ayarlar İndirilenler klasörüne kaydedildi.',
     ptBr: 'Configurações salvas em Downloads.',
@@ -1990,6 +2461,8 @@ class AppStrings {
 
   String get appPresentationUploadDone => tr(
     en: 'Per-app settings imported.',
+    es: 'Ajustes por aplicación importados.',
+    de: 'App-spezifische Einstellungen importiert.',
     ru: 'Настройки приложений загружены.',
     tr: 'Uygulama bazlı ayarlar içe aktarıldı.',
     ptBr: 'Configurações por app importadas.',
@@ -2000,6 +2473,8 @@ class AppStrings {
 
   String get appPresentationUploadFailed => tr(
     en: 'Failed to import settings JSON.',
+    es: 'No se pudo importar el JSON de ajustes.',
+    de: 'Einstellungs-JSON konnte nicht importiert werden.',
     ru: 'Не удалось загрузить JSON настроек.',
     tr: 'Ayarlar JSON\'u içe aktarılamadı.',
     ptBr: 'Falha ao importar JSON de configurações.',
@@ -2010,6 +2485,8 @@ class AppStrings {
 
   String get appPresentationInvalidJson => tr(
     en: 'Invalid per-app settings JSON.',
+    es: 'El JSON de ajustes por aplicación no es válido.',
+    de: 'Ungültiges JSON für App-spezifische Einstellungen.',
     ru: 'Невалидный JSON настроек приложений.',
     tr: 'Geçersiz uygulama bazlı ayarlar JSON\'u.',
     ptBr: 'JSON de configurações por app inválido.',
@@ -2020,6 +2497,8 @@ class AppStrings {
 
   String get downloadSettings => tr(
     en: 'Download settings',
+    es: 'Descargar ajustes',
+    de: 'Einstellungen herunterladen',
     ru: 'Скачать настройки',
     tr: 'Ayarları indir',
     ptBr: 'Baixar configurações',
@@ -2030,6 +2509,8 @@ class AppStrings {
 
   String get uploadSettings => tr(
     en: 'Upload settings',
+    es: 'Cargar ajustes',
+    de: 'Einstellungen hochladen',
     ru: 'Загрузить настройки',
     tr: 'Ayarları yükle',
     ptBr: 'Enviar configurações',
@@ -2040,6 +2521,8 @@ class AppStrings {
 
   String get save => tr(
     en: 'Save',
+    es: 'Guardar',
+    de: 'Speichern',
     ru: 'Сохранить',
     tr: 'Kaydet',
     ptBr: 'Salvar',
@@ -2050,6 +2533,8 @@ class AppStrings {
 
   String get appsLoadFailed => tr(
     en: 'Unable to load installed apps list.',
+    es: 'No se pudo cargar la lista de aplicaciones instaladas.',
+    de: 'Die Liste installierter Apps konnte nicht geladen werden.',
     ru: 'Не удалось загрузить список приложений.',
     tr: 'Yüklü uygulama listesi yüklenemiyor.',
     ptBr: 'Não foi possível carregar a lista de apps instalados.',
@@ -2060,6 +2545,8 @@ class AppStrings {
 
   String get appsAccessTitle => tr(
     en: 'App list access',
+    es: 'Acceso a la lista de aplicaciones',
+    de: 'Zugriff auf die App-Liste',
     ru: 'Доступ к списку приложений',
     tr: 'Uygulama listesi erişimi',
     ptBr: 'Acesso à lista de apps',
@@ -2070,6 +2557,8 @@ class AppStrings {
 
   String get appsAccessMessage => tr(
     en: 'Allow LiveBridge to read installed apps so you can pick apps for rules?',
+    es: '¿Permitir que LiveBridge lea las aplicaciones instaladas para seleccionarlas en las reglas?',
+    de: 'Darf LiveBridge die installierten Apps lesen, damit du sie für Regeln auswählen kannst?',
     ru: 'Разрешить LiveBridge читать список установленных приложений для выбора правил?',
     tr: 'Kurallar için uygulama seçebilmeniz adına LiveBridge yüklü uygulamaları okuyabilsin mi?',
     ptBr:
@@ -2081,6 +2570,8 @@ class AppStrings {
 
   String get appsAccessSaveFailed => tr(
     en: 'Unable to save access preference.',
+    es: 'No se pudo guardar la preferencia de acceso.',
+    de: 'Die Zugriffseinstellung konnte nicht gespeichert werden.',
     ru: 'Не удалось сохранить выбор доступа.',
     tr: 'Erişim tercihi kaydedilemiyor.',
     ptBr: 'Não foi possível salvar a preferência de acesso.',
@@ -2091,6 +2582,8 @@ class AppStrings {
 
   String get cancel => tr(
     en: 'Cancel',
+    es: 'Cancelar',
+    de: 'Abbrechen',
     ru: 'Отмена',
     tr: 'İptal',
     ptBr: 'Cancelar',
@@ -2101,6 +2594,8 @@ class AppStrings {
 
   String get allow => tr(
     en: 'Allow',
+    es: 'Permitir',
+    de: 'Erlauben',
     ru: 'Разрешить',
     tr: 'İzin ver',
     ptBr: 'Permitir',
@@ -2111,6 +2606,8 @@ class AppStrings {
 
   String get textProgressTitle => tr(
     en: 'Text progress',
+    es: 'Progreso en el texto',
+    de: 'Fortschritt im Text',
     ru: 'Текстовые прогрессы',
     tr: 'Metin ilerlemesi',
     ptBr: 'Progresso baseado em texto ao invés de barra',
@@ -2121,6 +2618,8 @@ class AppStrings {
 
   String get nativeProgressDescription => tr(
     en: 'uses Android progress from notifications when available',
+    es: 'usa el progreso de Android de las notificaciones cuando está disponible',
+    de: 'verwendet den Android-Fortschritt aus Benachrichtigungen, sofern verfügbar',
     ru: 'использует прогресс из Android-уведомлений, если он есть',
     tr: 'varsa Android bildirimlerindeki ilerlemeyi kullanır',
     ptBr: 'Usa barras de progresso do Android quando disponível',
@@ -2131,6 +2630,8 @@ class AppStrings {
 
   String get textProgressDescription => tr(
     en: 'detects progress from notification text like 42%',
+    es: 'detecta el progreso en el texto de las notificaciones, como 42%',
+    de: 'erkennt Fortschritt im Benachrichtigungstext, etwa 42 %',
     ru: 'определяет прогресс из текста уведомлений, например 42%',
     tr: '42% gibi bildirim metnindeki ilerlemeyi algılar',
     ptBr: 'Detecta o progresso a partir do texto da notificação. Ex: 42%',
@@ -2141,6 +2642,8 @@ class AppStrings {
 
   String get otpCodesDescription => tr(
     en: 'detects verification codes and shows them in Live Updates',
+    es: 'detecta códigos de verificación y los muestra en Live Updates',
+    de: 'erkennt Bestätigungscodes und zeigt sie in Live Updates an',
     ru: 'находит коды подтверждения и показывает их в Live Updates',
     tr: 'doğrulama kodlarını algılar ve Live Updates içinde gösterir',
     ptBr: 'Detecta códigos de verificação e exibe como notificações ao vivo',
@@ -2151,6 +2654,8 @@ class AppStrings {
 
   String get autoCopyCodeDescription => tr(
     en: 'copies detected OTP codes to clipboard automatically',
+    es: 'copia automáticamente los códigos OTP detectados al portapapeles',
+    de: 'kopiert erkannte OTP-Codes automatisch in die Zwischenablage',
     ru: 'автоматически копирует найденные OTP-коды в буфер обмена',
     tr: 'algılanan OTP kodlarını otomatik olarak panoya kopyalar',
     ptBr: 'Quando detectado, copia automaticamente os códigos OTP',
@@ -2161,6 +2666,8 @@ class AppStrings {
 
   String get removeOriginalMessageDescription => tr(
     en: 'tries to hide the original notification after conversion',
+    es: 'intenta ocultar la notificación original después de convertirla',
+    de: 'versucht, die Originalbenachrichtigung nach der Umwandlung auszublenden',
     ru: 'пытается скрыть исходное уведомление после конвертации',
     tr: 'dönüştürmeden sonra orijinal bildirimi gizlemeyi dener',
     ptBr: 'Tenta esconder a notificação original após a conversão',
@@ -2171,6 +2678,8 @@ class AppStrings {
 
   String get taxiDescription => tr(
     en: 'shows taxi ride state as a Live Update',
+    es: 'muestra el estado del viaje en taxi como Live Update',
+    de: 'zeigt den Status einer Taxifahrt als Live Update an',
     ru: 'показывает состояние поездки такси в Live Updates',
     tr: 'taksi yolculuğu durumunu Live Update olarak gösterir',
     ptBr: 'Mostra o estado da corrida de táxi com atualizações ao vivo',
@@ -2181,6 +2690,8 @@ class AppStrings {
 
   String get deliveriesDescription => tr(
     en: 'shows delivery progress from food and shopping apps',
+    es: 'muestra el progreso de entregas de aplicaciones de comida y compras',
+    de: 'zeigt den Lieferfortschritt aus Essens- und Einkaufs-Apps an',
     ru: 'показывает прогресс доставки из еды и магазинов',
     tr: 'yemek ve alışveriş uygulamalarındaki teslimat ilerlemesini gösterir',
     ptBr: 'Mostra o progresso da entrega de aplicativos como compras e comidas',
@@ -2191,6 +2702,8 @@ class AppStrings {
 
   String get allAppsDescription => tr(
     en: 'converts matching notifications from every app',
+    es: 'convierte las notificaciones que cumplen las reglas de todas las aplicaciones',
+    de: 'wandelt passende Benachrichtigungen aus allen Apps um',
     ru: 'конвертирует подходящие уведомления из всех приложений',
     tr: 'tüm uygulamalardan eşleşen bildirimleri dönüştürür',
     ptBr: 'Converte notificações recebidas de todos os apps',
@@ -2201,6 +2714,8 @@ class AppStrings {
 
   String get onlySelectedDescription => tr(
     en: 'converts notifications only from apps you select',
+    es: 'convierte notificaciones solo de las aplicaciones que selecciones',
+    de: 'wandelt nur Benachrichtigungen ausgewählter Apps um',
     ru: 'конвертирует уведомления только из выбранных приложений',
     tr: 'yalnızca seçtiğiniz uygulamalardan gelen bildirimleri dönüştürür',
     ptBr: 'Converte notificação apenas dos apps que você selecionar',
@@ -2211,6 +2726,8 @@ class AppStrings {
 
   String get excludeSelectedDescription => tr(
     en: 'converts every app except the apps you select',
+    es: 'convierte todas las aplicaciones excepto las que selecciones',
+    de: 'wandelt alle Apps außer den ausgewählten um',
     ru: 'конвертирует все приложения, кроме выбранных',
     tr: 'seçtiğiniz uygulamalar dışındaki tüm uygulamaları dönüştürür',
     ptBr: 'Converte todos os aplicativos, exceto os que você selecionar',
@@ -2221,6 +2738,8 @@ class AppStrings {
 
   String get vpnsDescription => tr(
     en: 'shows active VPN traffic and connection state',
+    es: 'muestra el tráfico y el estado de conexión de la VPN activa',
+    de: 'zeigt Datenverkehr und Verbindungsstatus aktiver VPNs an',
     ru: 'показывает трафик и состояние активного VPN',
     tr: 'aktif VPN trafiğini ve bağlantı durumunu gösterir',
     ptBr: 'mostra o tráfego da VPN ativa e o estado da conexão',
@@ -2231,6 +2750,8 @@ class AppStrings {
 
   String get externalDevicesDescription => tr(
     en: 'shows connected external devices in Live Updates',
+    es: 'muestra dispositivos externos conectados en Live Updates',
+    de: 'zeigt verbundene externe Geräte in Live Updates an',
     ru: 'показывает подключенные внешние устройства в Live Updates',
     tr: 'bağlı harici cihazları Live Updates içinde gösterir',
     ptBr: 'mostra dispositivos externos conectados em Notificações ao vivo',
@@ -2241,6 +2762,8 @@ class AppStrings {
 
   String get ignoreDebuggingDevicesDescription => tr(
     en: 'hides ADB and debugging device notifications',
+    es: 'oculta notificaciones de ADB y dispositivos de depuración',
+    de: 'blendet ADB- und Debugging-Gerätebenachrichtigungen aus',
     ru: 'скрывает ADB и уведомления отладочных устройств',
     tr: 'ADB ve hata ayıklama cihazı bildirimlerini gizler',
     ptBr: 'oculta notificações de ADB e dispositivos de depuração',
@@ -2251,6 +2774,8 @@ class AppStrings {
 
   String get mediaPlaybackDescription => tr(
     en: 'shows track controls and playback status in Live Updates',
+    es: 'muestra controles y estado de reproducción en Live Updates',
+    de: 'zeigt Mediensteuerung und Wiedergabestatus in Live Updates an',
     ru: 'показывает управление треком и статус воспроизведения',
     tr: 'parça kontrollerini ve oynatma durumunu Live Updates içinde gösterir',
     ptBr:
@@ -2262,6 +2787,8 @@ class AppStrings {
 
   String get showMediaOnLockDescription => tr(
     en: 'allows media Live Updates on the lockscreen',
+    es: 'permite Live Updates multimedia en la pantalla de bloqueo',
+    de: 'erlaubt Medien-Live-Updates auf dem Sperrbildschirm',
     ru: 'разрешает показывать медиа Live Updates на экране блокировки',
     tr: 'kilit ekranında medya Live Updates gösterilmesine izin verir',
     ptBr: 'permite Notificações ao vivo de mídia na tela de bloqueio',
@@ -2272,6 +2799,8 @@ class AppStrings {
 
   String get useSymbolsInMediaPlayerDescription => tr(
     en: 'uses ▶, ⏸, ⏮ and ⏭ instead of text actions',
+    es: 'usa ▶, ⏸, ⏮ y ⏭ en lugar de acciones de texto',
+    de: 'verwendet ▶, ⏸, ⏮ und ⏭ statt Aktionsbeschriftungen',
     ru: 'использует ▶, ⏸, ⏮ и ⏭ вместо текстовых действий',
     tr: 'metin eylemleri yerine ▶, ⏸, ⏮ ve ⏭ kullanır',
     ptBr: 'usa ▶, ⏸, ⏮ e ⏭ em vez de ações em texto',
@@ -2282,6 +2811,8 @@ class AppStrings {
 
   String get callsDescription => tr(
     en: 'shows ongoing calls as Live Updates',
+    es: 'muestra las llamadas en curso como Live Updates',
+    de: 'zeigt laufende Anrufe als Live Updates an',
     ru: 'показывает активные звонки в Live Updates',
     tr: 'devam eden aramaları Live Updates olarak gösterir',
     ptBr: 'mostra chamadas em andamento como Notificações ao vivo',
@@ -2292,6 +2823,8 @@ class AppStrings {
 
   String get navigationMapsDescription => tr(
     en: 'shows the direction and distance in Live Updates',
+    es: 'muestra la dirección y la distancia en Live Updates',
+    de: 'zeigt Richtung und Entfernung in Live Updates an',
     ru: 'показывает направление и расстояние в Live Updates',
     tr: 'yönü ve mesafeyi Live Updates içinde gösterir',
     ptBr: 'mostra direção e distância em Notificações ao vivo',
@@ -2302,6 +2835,8 @@ class AppStrings {
 
   String get weatherBroadcastsDescription => tr(
     en: 'shows weather alerts and forecast notifications',
+    es: 'muestra avisos meteorológicos y notificaciones del pronóstico',
+    de: 'zeigt Wetterwarnungen und Vorhersagebenachrichtigungen an',
     ru: 'показывает погодные уведомления и прогнозы',
     tr: 'hava durumu uyarılarını ve tahmin bildirimlerini gösterir',
     ptBr: 'mostra alertas de clima e notificações de previsão',
@@ -2312,6 +2847,8 @@ class AppStrings {
 
   String get appLanguageDescription => tr(
     en: 'changes the language used by LiveBridge UI',
+    es: 'cambia el idioma de la interfaz de LiveBridge',
+    de: 'ändert die Sprache der LiveBridge-Oberfläche',
     ru: 'меняет язык интерфейса LiveBridge',
     tr: 'LiveBridge arayüzünde kullanılan dili değiştirir',
     ptBr: 'altera o idioma usado pela interface do LiveBridge',
@@ -2322,6 +2859,8 @@ class AppStrings {
 
   String get keepAliveForegroundDescription => tr(
     en: 'uses an alternate foreground mode for stricter firmwares',
+    es: 'usa un modo alternativo de servicio en primer plano para firmwares más restrictivos',
+    de: 'verwendet einen alternativen Vordergrundmodus für restriktivere Firmware',
     ru: 'использует альтернативный foreground-режим для строгих прошивок',
     tr: 'daha katı yazılımlar için alternatif ön plan modunu kullanır',
     ptBr: 'usa um modo foreground alternativo para firmwares mais restritos',
@@ -2332,6 +2871,8 @@ class AppStrings {
 
   String get syncDndDescription => tr(
     en: 'syncs Live Updates behavior with Do Not Disturb',
+    es: 'sincroniza Live Updates con No molestar',
+    de: 'passt Live Updates an „Nicht stören“ an',
     ru: 'синхронизирует поведение Live Updates с режимом Не беспокоить',
     tr: 'Live Updates davranışını Rahatsız Etmeyin ile eşitler',
     ptBr:
@@ -2343,6 +2884,8 @@ class AppStrings {
 
   String get preventDismissingDescription => tr(
     en: 'restores the LiveBridge notification after it is swiped away',
+    es: 'restaura la notificación de LiveBridge después de descartarla deslizando',
+    de: 'stellt die LiveBridge-Benachrichtigung nach dem Wegwischen wieder her',
     ru: 'восстанавливает уведомление LiveBridge после свайпа',
     tr: 'LiveBridge bildirimi kaydırılıp kapatıldıktan sonra geri yükler',
     ptBr: 'restaura a notificação do LiveBridge depois que ela é dispensada',
@@ -2353,6 +2896,8 @@ class AppStrings {
 
   String get hideLockscreenContentDescription => tr(
     en: 'shows Content hidden instead of notification text on the lockscreen',
+    es: 'muestra «Contenido oculto» en lugar del texto de la notificación en la pantalla de bloqueo',
+    de: 'zeigt „Inhalt ausgeblendet“ statt des Benachrichtigungstextes auf dem Sperrbildschirm',
     ru: 'показывает Content hidden вместо текста уведомления на локскрине',
     tr: 'kilit ekranında bildirim metni yerine Content hidden gösterir',
     ptBr:
@@ -2364,6 +2909,8 @@ class AppStrings {
 
   String get convertedNotificationSoundDescription => tr(
     en: 'plays a sound when a converted notification first appears',
+    es: 'reproduce un sonido cuando aparece una notificación convertida por primera vez',
+    de: 'spielt beim ersten Erscheinen einer umgewandelten Benachrichtigung einen Ton ab',
     ru: 'воспроизводит звук при первом появлении конвертированного уведомления',
     tr: 'dönüştürülen bir bildirim ilk göründüğünde ses çalar',
     ptBr:
@@ -2375,6 +2922,8 @@ class AppStrings {
 
   String get disableHintsDescription => tr(
     en: 'hides info icons and hint popovers across the redesign UI',
+    es: 'oculta iconos de información y consejos en la interfaz',
+    de: 'blendet Infosymbole und Hinweise in der Oberfläche aus',
     ru: 'скрывает иконки info и всплывающие подсказки в новом интерфейсе',
     tr: 'yeni arayüzde bilgi simgelerini ve ipucu pencerelerini gizler',
     ptBr: 'oculta ícones de informação e dicas na nova interface',
@@ -2385,6 +2934,8 @@ class AppStrings {
 
   String get conversionLogDescription => tr(
     en: 'keeps recent converted notifications for debugging',
+    es: 'guarda las notificaciones convertidas recientes para el diagnóstico',
+    de: 'speichert zuletzt umgewandelte Benachrichtigungen zur Fehlerdiagnose',
     ru: 'сохраняет последние конвертации для отладки',
     tr: 'hata ayıklama için son dönüştürülen bildirimleri saklar',
     ptBr: 'mantém notificações convertidas recentemente para depuração',
@@ -2395,6 +2946,8 @@ class AppStrings {
 
   String get logLengthDescription => tr(
     en: 'limits how much conversion log data is kept on device',
+    es: 'limita la cantidad de datos del registro guardados en el dispositivo',
+    de: 'begrenzt die auf dem Gerät gespeicherten Protokolldaten',
     ru: 'ограничивает объем лога конвертаций на устройстве',
     tr: 'cihazda tutulacak dönüştürme günlüğü verisi miktarını sınırlar',
     ptBr: 'limita quantos dados do log de conversões ficam no dispositivo',
@@ -2405,6 +2958,8 @@ class AppStrings {
 
   String get networkSpeedDescription => tr(
     en: 'shows current network traffic as a Live Update',
+    es: 'muestra el tráfico de red actual como Live Update',
+    de: 'zeigt den aktuellen Netzwerkverkehr als Live Update an',
     ru: 'показывает текущий трафик сети как Live Update',
     tr: 'mevcut ağ trafiğini Live Update olarak gösterir',
     ptBr: 'mostra o tráfego de rede atual como Notificação ao vivo',
@@ -2415,6 +2970,8 @@ class AppStrings {
 
   String get networkSpeedThresholdDescription => tr(
     en: 'hides the network speed Live Update below this traffic level',
+    es: 'oculta el Live Update de velocidad de red por debajo de este nivel de tráfico',
+    de: 'blendet das Netzwerkgeschwindigkeits-Live-Update unterhalb dieses Datenverkehrs aus',
     ru: 'скрывает Live Update скорости сети ниже этого порога',
     tr: 'ağ hızı bu seviyenin altındaysa Live Update öğesini gizler',
     ptBr:
@@ -2426,6 +2983,8 @@ class AppStrings {
 
   String get xiaomiHyperIslandDescription => tr(
     en: 'enables Xiaomi HyperIsland-specific Live Updates behavior',
+    es: 'activa el comportamiento de Live Updates específico de Xiaomi HyperIsland',
+    de: 'aktiviert das Xiaomi-HyperIsland-spezifische Verhalten für Live Updates',
     ru: 'включает поведение Live Updates для Xiaomi HyperIsland',
     tr: 'Xiaomi HyperIsland için özel Live Updates davranışını etkinleştirir',
     ptBr:
@@ -2437,6 +2996,8 @@ class AppStrings {
 
   String get aospCuttingDescription => tr(
     en: 'shortens island text on AOSP-like firmwares that clip long content',
+    es: 'acorta el texto de la cápsula en firmwares basados en AOSP que recortan contenido largo',
+    de: 'kürzt den Kapseltext auf AOSP-basierten Systemen, die lange Inhalte abschneiden',
     ru: 'укорачивает текст острова на AOSP-прошивках, где длинный текст обрезается',
     tr: 'uzun içeriği kırpan AOSP benzeri yazılımlarda ada metnini kısaltır',
     ptBr:
@@ -2448,6 +3009,8 @@ class AppStrings {
 
   String get aospCuttingLengthDescription => tr(
     en: 'sets the maximum island text length for AOSP cutting',
+    es: 'establece la longitud máxima del texto para el recorte en AOSP',
+    de: 'legt die maximale Kapseltextlänge für die AOSP-Textkürzung fest',
     ru: 'задает максимальную длину текста острова для AOSP-обрезки',
     tr: 'AOSP kırpması için en uzun ada metni uzunluğunu ayarlar',
     ptBr: 'define o comprimento máximo do texto da ilha para o corte AOSP',
@@ -2458,6 +3021,8 @@ class AppStrings {
 
   String get updateFrequencyDescription => tr(
     en: 'controls how often animated island text frames are refreshed',
+    es: 'controla la frecuencia de actualización de los fotogramas de texto de la cápsula animada',
+    de: 'legt fest, wie oft Textbilder der animierten Kapsel aktualisiert werden',
     ru: 'задает частоту обновления кадров анимации текста острова',
     tr: 'animasyonlu ada metni karelerinin ne sıklıkta yenileneceğini ayarlar',
     ptBr:
@@ -2469,6 +3034,8 @@ class AppStrings {
 
   String get otpDedupDescription => tr(
     en: 'reduces repeated OTP notifications from the same source',
+    es: 'reduce las notificaciones OTP repetidas del mismo origen',
+    de: 'verringert wiederholte OTP-Benachrichtigungen aus derselben Quelle',
     ru: 'уменьшает повторы OTP-уведомлений из одного источника',
     tr: 'aynı kaynaktan gelen tekrarlı OTP bildirimlerini azaltır',
     ptBr: 'reduz notificações OTP repetidas da mesma origem',
@@ -2479,6 +3046,8 @@ class AppStrings {
 
   String get smartConversionDedupDescription => tr(
     en: 'reduces repeated smart conversion notifications',
+    es: 'reduce las notificaciones repetidas de conversión inteligente',
+    de: 'verringert wiederholte Benachrichtigungen der intelligenten Umwandlung',
     ru: 'уменьшает повторы уведомлений умной конвертации',
     tr: 'tekrarlı akıllı dönüştürme bildirimlerini azaltır',
     ptBr: 'reduz notificações repetidas de conversão inteligente',
@@ -2489,6 +3058,8 @@ class AppStrings {
 
   String get animatedIslandDescription => tr(
     en: 'adds smooth island text animations for supported conversions',
+    es: 'añade animaciones de texto suaves a las conversiones compatibles',
+    de: 'fügt unterstützten Umwandlungen flüssige Kapseltextanimationen hinzu',
     ru: 'добавляет плавные анимации текста острова',
     tr: 'desteklenen dönüştürmeler için akıcı ada metni animasyonları ekler',
     ptBr:

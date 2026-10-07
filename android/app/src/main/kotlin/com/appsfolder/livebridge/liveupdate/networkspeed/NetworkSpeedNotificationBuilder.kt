@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.appsfolder.livebridge.MainActivity
 import com.appsfolder.livebridge.R
+import com.appsfolder.livebridge.liveupdate.NativeAppStrings
 
 class NetworkSpeedNotificationBuilder(
     private val context: Context
@@ -98,31 +99,11 @@ class NetworkSpeedNotificationBuilder(
         return builder.build()
     }
 
-    private fun localizedText(): LocalizedText {
-        return if (isRussianLocale()) {
-            LocalizedText(
-                notificationTitle = "Скорость сети",
-                channelName = "Монитор скорости сети",
-                channelDescription = "Показывает текущую скорость сети в статус-баре"
-            )
-        } else {
-            LocalizedText(
-                notificationTitle = "Network speed",
-                channelName = "Network speed monitor",
-                channelDescription = "Shows current network speed in the status bar"
-            )
-        }
-    }
-
-    private fun isRussianLocale(): Boolean {
-        val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            context.resources.configuration.locales.get(0)
-        } else {
-            @Suppress("DEPRECATION")
-            context.resources.configuration.locale
-        }
-        return locale?.language?.startsWith("ru", ignoreCase = true) == true
-    }
+    private fun localizedText() = LocalizedText(
+        notificationTitle = NativeAppStrings.text(context, "Network speed", "Скорость сети", "Velocidad de red", "Netzwerkgeschwindigkeit"),
+        channelName = NativeAppStrings.text(context, "Network speed monitor", "Монитор скорости сети", "Monitor de velocidad de red", "Netzwerkgeschwindigkeitsmonitor"),
+        channelDescription = NativeAppStrings.text(context, "Shows current network speed in the status bar", "Показывает текущую скорость сети в статус-баре", "Muestra la velocidad de red actual en la barra de estado", "Zeigt die aktuelle Netzwerkgeschwindigkeit in der Statusleiste an")
+    )
 
     private data class LocalizedText(
         val notificationTitle: String,
