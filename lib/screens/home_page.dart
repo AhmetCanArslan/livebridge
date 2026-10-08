@@ -28,13 +28,13 @@ class _LiveBridgeHomePageState extends State<LiveBridgeHomePage>
   static const String _projectGithubUrl =
       'https://github.com/appsfolder/livebridge';
   static const String _projectDownloadPageUrl =
-      'https://appsfolder.github.io/livebridge/';
+      'https://github.com/AhmetCanArslan/livebridge/releases/latest';
   static const String _projectDownloadSectionUrl =
       'https://appsfolder.github.io/livebridge/#download';
   static const String _projectGithubBugReportUrl =
       'https://github.com/appsfolder/livebridge/issues/new/choose?template=bug_report.yml';
   static const String _latestReleaseApiUrl =
-      'https://api.github.com/repos/appsfolder/livebridge/releases/latest';
+      'https://api.github.com/repos/AhmetCanArslan/livebridge/releases/latest';
   static const String _dictionaryRawUrl =
       'https://raw.githubusercontent.com/appsfolder/livebridge/refs/heads/main/android/app/src/main/assets/liveupdate_dictionary.json';
   static const bool _dictionaryAutoSyncEnabled = false;

@@ -34,9 +34,9 @@ class _SettingsUpdateScreenState extends State<SettingsUpdateScreen>
   static const String _projectGithubUrl =
       'https://github.com/appsfolder/livebridge';
   static const String _projectDownloadPageUrl =
-      'https://appsfolder.github.io/livebridge/';
+      'https://github.com/AhmetCanArslan/livebridge/releases/latest';
   static const String _latestReleaseApiUrl =
-      'https://api.github.com/repos/appsfolder/livebridge/releases/latest';
+      'https://api.github.com/repos/AhmetCanArslan/livebridge/releases/latest';
 
   bool _updateChecksEnabled = true;
   bool _updateAvailable = false;
