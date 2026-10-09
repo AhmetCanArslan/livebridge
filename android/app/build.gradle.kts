@@ -22,7 +22,7 @@ fun releaseSigningProperty(name: String): String {
 }
 
 android {
-    namespace = "com.appsfolder.livebridge"
+    namespace = "com.arslan.livebridge"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -37,7 +37,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.appsfolder.livebridge"
+        applicationId = "com.arslan.livebridge"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // Live Updates are available starting from Android 16 (API 36).
